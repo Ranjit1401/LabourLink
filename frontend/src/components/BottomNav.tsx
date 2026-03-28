@@ -1,37 +1,51 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BOTTOM_NAV_ITEMS } from '../utils/helpers';
+import { useApp } from '../context/AppContext';
 
-const BottomNav = () => {
+export default function BottomNav() {
   const location = useLocation();
+  const { userRole } = useApp();
+
+  // Hide on landing and auth pages
+  if (location.pathname === '/' || location.pathname === '/signup') return null;
+
+  const links = userRole === 'contractor'
+    ? [
+        { label: 'Home', icon: 'home', path: '/contractor-dashboard' },
+        { label: 'Jobs', icon: 'work', path: '/jobs' },
+        { label: 'Feed', icon: 'dynamic_feed', path: '/feed' },
+        { label: 'Profile', icon: 'person', path: '/contractor-dashboard' },
+      ]
+    : [
+        { label: 'Home', icon: 'home', path: '/feed' },
+        { label: 'Jobs', icon: 'search', path: '/jobs' },
+        { label: 'Rate', icon: 'star', path: '/rating' },
+        { label: 'Profile', icon: 'person', path: '/worker-profile' },
+      ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/90 backdrop-blur-xl z-50 rounded-t-3xl border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-      {BOTTOM_NAV_ITEMS.map((item) => {
-        const isActive = location.pathname === item.path;
+    <nav className="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/90 backdrop-blur-xl z-50 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] border-t border-slate-100">
+      {links.map(link => {
+        const isActive = location.pathname === link.path;
         return (
           <Link
-            key={item.path}
-            to={item.path}
-            className={`flex flex-col items-center justify-center px-5 py-2 rounded-2xl transition-all ${
+            key={link.path + link.label}
+            to={link.path}
+            className={`flex flex-col items-center justify-center px-5 py-2 transition-all ${
               isActive
-                ? 'bg-emerald-100 text-emerald-900 scale-90'
+                ? 'bg-emerald-100 text-emerald-900 rounded-2xl scale-90'
                 : 'text-slate-500'
             }`}
           >
             <span
               className="material-symbols-outlined"
-              style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+              style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
             >
-              {item.icon}
+              {link.icon}
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider mt-1">
-              {item.label}
-            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider mt-1">{link.label}</span>
           </Link>
         );
       })}
     </nav>
   );
-};
-
-export default BottomNav;
+}

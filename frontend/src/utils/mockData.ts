@@ -1,4 +1,4 @@
-import type { Job, Worker, DashboardStats, Post } from '../types';
+import type { Job, Worker, DashboardStats, Post, Notification, Rating } from '../types';
 
 // ─── Mock Jobs ────────────────────────────
 export const MOCK_JOBS: Job[] = [
@@ -17,6 +17,7 @@ export const MOCK_JOBS: Job[] = [
     likes: 14,
     comments: 3,
     type: 'immediate',
+    postedBy: 'contractor',
   },
   {
     id: '2',
@@ -33,6 +34,7 @@ export const MOCK_JOBS: Job[] = [
     likes: 32,
     comments: 8,
     type: 'contract',
+    postedBy: 'contractor',
   },
   {
     id: '3',
@@ -104,45 +106,46 @@ export const MOCK_JOBS: Job[] = [
 export const CONTRACTOR_JOBS: Job[] = [
   {
     id: 'c1',
-    title: 'Senior Masonry Specialist',
+    title: 'Senior Site Foreman',
     company: 'My Company',
-    location: 'Downtown District',
-    wage: '₹2,250',
+    location: 'Downtown Metro Project',
+    wage: '$45 - $55',
     wageUnit: 'hr',
-    skills: ['Masonry'],
-    description: '',
-    postedAt: '2 hours ago',
+    skills: ['Foreman', 'Safety'],
+    description: 'Oversee a flagship construction project.',
+    postedAt: '2 days ago',
     status: 'open',
-    icon: 'architecture',
-    applicants: 15,
+    icon: 'engineering',
+    applicants: 24,
+    type: 'immediate',
   },
   {
     id: 'c2',
-    title: 'Industrial Electrician',
+    title: 'Journeyman Electrician',
     company: 'My Company',
-    location: 'Port Authority',
-    wage: '₹2,600',
+    location: 'Westside Residential',
+    wage: '$38 - $42',
     wageUnit: 'hr',
     skills: ['Electrical'],
-    description: '',
-    postedAt: '1 day ago',
+    description: 'Residential electrical work for new development.',
+    postedAt: '5 days ago',
     status: 'open',
     icon: 'bolt',
-    applicants: 7,
+    applicants: 12,
   },
   {
     id: 'c3',
-    title: 'General Painter (x5)',
+    title: 'General Laborer (Day Shift)',
     company: 'My Company',
-    location: 'Westview Mall',
-    wage: '₹1,400',
+    location: 'Industrial Park',
+    wage: '$22',
     wageUnit: 'hr',
-    skills: ['Painting'],
-    description: '',
-    postedAt: '5 days ago',
-    status: 'closed',
-    icon: 'format_paint',
-    applicants: 5,
+    skills: ['General Labor'],
+    description: 'Day shift general labor work.',
+    postedAt: '1 week ago',
+    status: 'open',
+    icon: 'construction',
+    applicants: 48,
   },
 ];
 
@@ -157,14 +160,16 @@ export const MOCK_WORKER: Worker = {
   profileViews: 142,
   rating: 4.9,
   verified: true,
+  about: 'Experienced Master Electrician with over 8 years of hands-on expertise in residential and industrial electrical systems. Certified in HVAC repair and advanced wiring. Committed to safety, quality, and professionalism on every project.',
+  skills: ['Electrical Wiring', 'HVAC Repair', 'Industrial Power', 'Blueprints', 'Panel Upgrade', 'Smart Lighting', 'Circuit Repair', 'Plumbing'],
   followers: 238,
   following: 142,
   referralCode: 'ARJUN-LL-2024',
   endorsements: [
-    { skill: 'Wiring', count: 24 },
-    { skill: 'Mason', count: 10 },
-    { skill: 'HVAC Repair', count: 8 },
-    { skill: 'Plumbing', count: 5 },
+    { skill: 'Wiring', count: 24, endorsedBy: 'Mehta Construction' },
+    { skill: 'Mason', count: 10, endorsedBy: 'BuildCorp Ltd' },
+    { skill: 'HVAC Repair', count: 8, endorsedBy: 'City Works Corp' },
+    { skill: 'Plumbing', count: 5, endorsedBy: 'GreenScape Designs' },
   ],
   portfolio: [
     { id: 'p1', title: 'Main Panel Upgrade', imageUrl: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400&q=80' },
@@ -180,9 +185,9 @@ export const MOCK_WORKER: Worker = {
 
 // ─── Mock Dashboard Stats ────────────────────────────
 export const MOCK_STATS: DashboardStats = {
-  activeJobs: 24,
-  applicants: 148,
-  totalHires: 892,
+  activeJobs: 12,
+  applicants: 84,
+  totalHires: 342,
   earnings: 142500,
   jobsThisWeek: 6,
 };
@@ -210,8 +215,103 @@ export const MOCK_POSTS: Post[] = [
   },
 ];
 
+// ─── Mock Notifications ────────────────────────────
+export const MOCK_NOTIFICATIONS: Notification[] = [
+  {
+    id: 'notif1',
+    type: 'job',
+    title: 'Job application status updated',
+    message: 'Your application for "Senior Site Manager" has been moved to the interview stage.',
+    time: '2 hours ago',
+    read: false,
+    icon: 'work',
+  },
+  {
+    id: 'notif2',
+    type: 'rating',
+    title: 'New rating received',
+    message: 'BuildCorp Ltd rated you 5.0',
+    time: '5 hours ago',
+    read: false,
+    icon: 'star',
+  },
+  {
+    id: 'notif3',
+    type: 'follower',
+    title: 'Sarah Jenkins followed you',
+    message: "Check out Sarah's network of trade professionals.",
+    time: 'Yesterday',
+    read: true,
+    icon: 'person_add',
+  },
+  {
+    id: 'notif4',
+    type: 'payment',
+    title: 'Payment released',
+    message: 'The milestone payment for "Plumbing Overhaul" has been processed.',
+    time: '2 days ago',
+    read: true,
+    icon: 'payments',
+  },
+  {
+    id: 'notif5',
+    type: 'endorsement',
+    title: 'New endorsement received',
+    message: 'Mehta Construction endorsed you for Wiring.',
+    time: '3 days ago',
+    read: true,
+    icon: 'military_tech',
+  },
+];
+
+// ─── Mock Ratings ────────────────────────────
+export const MOCK_RATINGS: Rating[] = [
+  {
+    id: 'r1',
+    workerId: 'w1',
+    workerName: 'Marcus Chen',
+    contractorName: 'BuildCorp Ltd',
+    score: 5,
+    strengths: ['Punctual', 'Expert Knowledge'],
+    comment: 'Exceptional work on the industrial rewiring project. Marcus demonstrated outstanding professionalism and technical skill.',
+    createdAt: '2 weeks ago',
+  },
+  {
+    id: 'r2',
+    workerId: 'w1',
+    workerName: 'Marcus Chen',
+    contractorName: 'City Works Corp',
+    score: 4,
+    strengths: ['Clean Workspace', 'Communication'],
+    comment: 'Great job on the LED fixture installation. Communication was clear throughout the project.',
+    createdAt: '1 month ago',
+  },
+  {
+    id: 'r3',
+    workerId: 'w1',
+    workerName: 'Marcus Chen',
+    contractorName: 'Prestige Homes',
+    score: 5,
+    strengths: ['Punctual', 'Clean Workspace', 'Expert Knowledge'],
+    comment: 'Marcus completed the emergency circuit repair ahead of schedule. Highly recommended!',
+    createdAt: '2 months ago',
+  },
+];
+
 export const NEWS_ITEMS = [
   { id: 'n1', title: 'New Safety Guidelines for 2024', time: '4d ago', readers: '1,202' },
   { id: 'n2', title: 'Govt. announces Skill Bonus scheme', time: '2d ago', readers: '850' },
   { id: 'n3', title: 'The rise of Modular Prefabrication', time: '1d ago', readers: '340' },
+];
+
+// ─── Available Skills for Selection ────────────────────────────
+export const AVAILABLE_SKILLS = [
+  { name: 'Plumbing', icon: 'plumbing', color: 'bg-blue-50', iconColor: 'text-blue-600', hoverBg: 'group-hover:bg-primary-container' },
+  { name: 'Electrical', icon: 'bolt', color: 'bg-amber-50', iconColor: 'text-amber-600', hoverBg: 'group-hover:bg-amber-400' },
+  { name: 'Landscaping', icon: 'grass', color: 'bg-emerald-50', iconColor: 'text-emerald-600', hoverBg: 'group-hover:bg-secondary' },
+  { name: 'Cleaning', icon: 'cleaning_services', color: 'bg-cyan-50', iconColor: 'text-cyan-600', hoverBg: 'group-hover:bg-cyan-500' },
+  { name: 'Construction', icon: 'construction', color: 'bg-orange-50', iconColor: 'text-orange-600', hoverBg: 'group-hover:bg-orange-500' },
+  { name: 'Carpentry', icon: 'carpenter', color: 'bg-stone-100', iconColor: 'text-stone-600', hoverBg: 'group-hover:bg-stone-500' },
+  { name: 'Painting', icon: 'format_paint', color: 'bg-purple-50', iconColor: 'text-purple-600', hoverBg: 'group-hover:bg-purple-500' },
+  { name: 'Masonry', icon: 'home_work', color: 'bg-red-50', iconColor: 'text-red-600', hoverBg: 'group-hover:bg-red-600' },
 ];

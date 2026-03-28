@@ -2,6 +2,18 @@
 //  Shared Types & Interfaces for LabourLink
 // ──────────────────────────────────────────
 
+export type UserRole = 'worker' | 'contractor' | null;
+
+export interface AppUser {
+  id: string;
+  name: string;
+  role: UserRole;
+  avatar?: string;
+  title?: string;
+  location?: string;
+  about?: string;
+}
+
 export interface Job {
   id: string;
   title: string;
@@ -19,6 +31,7 @@ export interface Job {
   icon?: string;
   likes?: number;
   comments?: number;
+  postedBy?: string;
 }
 
 export interface Worker {
@@ -32,6 +45,8 @@ export interface Worker {
   rating?: number;
   avatar?: string;
   verified: boolean;
+  about?: string;
+  skills?: string[];
   endorsements: Endorsement[];
   portfolio?: PortfolioItem[];
   recentJobs?: CompletedJob[];
@@ -43,6 +58,7 @@ export interface Worker {
 export interface Endorsement {
   skill: string;
   count: number;
+  endorsedBy?: string;
 }
 
 export interface PortfolioItem {
@@ -81,8 +97,35 @@ export interface Post {
   comments: number;
 }
 
+export interface Rating {
+  id: string;
+  workerId: string;
+  workerName: string;
+  contractorName: string;
+  score: number;
+  strengths: string[];
+  comment: string;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  type: 'job' | 'rating' | 'follower' | 'payment' | 'endorsement';
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+  icon: string;
+}
+
 export interface NavItem {
   label: string;
   icon: string;
   path: string;
+}
+
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
