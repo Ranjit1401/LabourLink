@@ -9,13 +9,14 @@ import WorkerProfilePage from './pages/WorkerProfilePage';
 import ContractorDashboardPage from './pages/ContractorDashboardPage';
 import FeedPage from './pages/FeedPage';
 import JobsPage from './pages/JobsPage';
+import JobDetailsPage from './pages/JobDetailsPage';
 import RatingPage from './pages/RatingPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Navbar />
-      <div className="pt-0">
+      <div className="pt-20">
         <Routes>
           {/* Landing as default route */}
           <Route path="/" element={<LandingPage />} />
@@ -32,6 +33,7 @@ function App() {
           {/* Shared pages */}
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/jobs/:id" element={<JobDetailsPage />} />
           <Route path="/rating" element={<RatingPage />} />
           {/* Fallback */}
           <Route path="*" element={<LandingPage />} />
