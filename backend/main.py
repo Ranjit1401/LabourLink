@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from database import users_collection, posts_collection, jobs_collection, applications_collection
+from database import users_collection, posts_collection, jobs_collection, applications_collection, connections_collection
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
@@ -136,7 +136,6 @@ def create_post(
     file: UploadFile = File(...),
     user=Depends(verify_token)
 ):
-    # Validate skills
     for skill in skills:
         if skill not in ALLOWED_SKILLS:
             raise HTTPException(status_code=400, detail=f"Invalid skill: {skill}")
@@ -257,3 +256,88 @@ def my_applications(user=Depends(verify_token)):
 @app.get("/skills")
 def get_skills():
     return {"skills": ALLOWED_SKILLS}
+
+# ---------------- CONNECTION SYSTEM ----------------
+@app.post("/send-request/{receiver_email}")
+def send_request(receiver_email: str, user=Depends(verify_token)):
+    sender = user["email"]
+
+    if sender == receiver_email:
+        raise HTTPException(status_code=400, detail="Cannot send request to yourself")
+
+    existing = connections_collection.find_one({
+        "$or": [
+            {"sender": sender, "receiver": receiver_email},
+            {"sender": receiver_email, "receiver": sender}
+        ]
+    })
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Request already exists")
+
+    connections_collection.insert_one({
+        "sender": sender,
+        "receiver": receiver_email,
+        "status": "pending",
+        "created_at": datetime.utcnow()
+    })
+
+    return {"message": "Request sent"}
+
+@app.post("/accept-request/{sender_email}")
+def accept_request(sender_email: str, user=Depends(verify_token)):
+    receiver = user["email"]
+
+    result = connections_collection.update_one(
+        {"sender": sender_email, "receiver": receiver, "status": "pending"},
+        {"$set": {"status": "accepted"}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    return {"message": "Request accepted"}
+
+@app.post("/reject-request/{sender_email}")
+def reject_request(sender_email: str, user=Depends(verify_token)):
+    receiver = user["email"]
+
+    result = connections_collection.update_one(
+        {"sender": sender_email, "receiver": receiver, "status": "pending"},
+        {"$set": {"status": "rejected"}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    return {"message": "Request rejected"}
+
+@app.get("/pending-requests")
+def pending_requests(user=Depends(verify_token)):
+    email = user["email"]
+
+    return list(connections_collection.find(
+        {"receiver": email, "status": "pending"},
+        {"_id": 0}
+    ))
+
+@app.get("/connections")
+def get_connections(user=Depends(verify_token)):
+    email = user["email"]
+
+    connections = list(connections_collection.find({
+        "$or": [
+            {"sender": email, "status": "accepted"},
+            {"receiver": email, "status": "accepted"}
+        ]
+    }))
+
+    result = []
+
+    for conn in connections:
+        if conn["sender"] == email:
+            result.append(conn["receiver"])
+        else:
+            result.append(conn["sender"])
+
+    return result
