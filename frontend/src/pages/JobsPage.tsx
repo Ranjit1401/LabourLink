@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function JobsPage() {
-  const { jobs, showToast } = useApp();
+  const navigate = useNavigate();
+  const { jobs } = useApp();
   const [search, setSearch] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
@@ -18,9 +20,6 @@ export default function JobsPage() {
     return matchSearch && matchSkills && job.status === 'open';
   }) : [];
 
-  const handleApply = (jobTitle: string) => {
-    showToast(`Successfully applied to "${jobTitle}"! 🎉`, 'success');
-  };
 
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen pb-24">
@@ -101,10 +100,10 @@ export default function JobsPage() {
                         </div>
                       </div>
                       <button
-                        onClick={() => handleApply(job.title)}
+                        onClick={() => navigate(`/jobs/${job.id}`)}
                         className="mt-6 px-8 py-3 bg-white text-primary font-bold rounded-xl hover:opacity-90 transition-all active:scale-95"
                       >
-                        Apply Now
+                        View Details
                       </button>
                     </div>
                   </div>
@@ -139,10 +138,10 @@ export default function JobsPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleApply(job.title)}
+                    onClick={() => navigate(`/jobs/${job.id}`)}
                     className="w-full mt-4 py-3 bg-surface-container text-on-surface font-bold rounded-lg group-hover:bg-primary group-hover:text-on-primary transition-colors"
                   >
-                    Apply Now
+                    View Details
                   </button>
                 </div>
               );
