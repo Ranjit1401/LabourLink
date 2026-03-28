@@ -1,33 +1,39 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { UserRole, ToastMessage, Job, Notification, Endorsement } from '../types';
-import { MOCK_JOBS, CONTRACTOR_JOBS, MOCK_NOTIFICATIONS } from '../utils/mockData';
+import { api } from '../utils/api'; 
 
-// ─── App State Context ─────────────────────
+export interface AppliedJob {
+  id: string;
+  title: string;
+  company: string;
+  status: 'Under Review' | 'Approved' | 'Rejected' | 'Completed';
+  appliedAt: string;
+}
+
 interface AppState {
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
   isLoggedIn: boolean;
   setIsLoggedIn: (v: boolean) => void;
-  // Jobs
   jobs: Job[];
   addJob: (job: Job) => void;
   contractorJobs: Job[];
   addContractorJob: (job: Job) => void;
-  // Notifications
   notifications: Notification[];
   markAllRead: () => void;
   unreadCount: number;
-  // Toast
   toasts: ToastMessage[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
-  // Worker profile editable state
   workerAbout: string;
   setWorkerAbout: (v: string) => void;
   workerSkills: string[];
   setWorkerSkills: (v: string[]) => void;
   endorsements: Endorsement[];
   addEndorsement: (skill: string, endorsedBy: string) => void;
+  // New: Applied Jobs State
+  appliedJobs: AppliedJob[];
+  addAppliedJob: (job: AppliedJob) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -35,23 +41,30 @@ const AppContext = createContext<AppState | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS);
-  const [contractorJobs, setContractorJobs] = useState<Job[]>(CONTRACTOR_JOBS);
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [contractorJobs, setContractorJobs] = useState<Job[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [workerAbout, setWorkerAbout] = useState(
-    'Experienced Master Electrician with over 8 years of hands-on expertise in residential and industrial electrical systems. Certified in HVAC repair and advanced wiring. Committed to safety, quality, and professionalism on every project.'
-  );
-  const [workerSkills, setWorkerSkills] = useState([
-    'Electrical Wiring', 'HVAC Repair', 'Industrial Power', 'Blueprints',
-    'Panel Upgrade', 'Smart Lighting', 'Circuit Repair', 'Plumbing'
-  ]);
-  const [endorsements, setEndorsements] = useState<Endorsement[]>([
-    { skill: 'Wiring', count: 24, endorsedBy: 'Mehta Construction' },
-    { skill: 'Mason', count: 10, endorsedBy: 'BuildCorp Ltd' },
-    { skill: 'HVAC Repair', count: 8, endorsedBy: 'City Works Corp' },
-    { skill: 'Plumbing', count: 5, endorsedBy: 'GreenScape Designs' },
-  ]);
+  
+  // Applied Jobs track karne ke liye
+  const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
+  
+  const [workerAbout, setWorkerAbout] = useState('Experienced Master Electrician with over 8 years of hands-on expertise...');
+  const [workerSkills, setWorkerSkills] = useState(['Electrical Wiring', 'HVAC Repair', 'Plumbing']);
+  const [endorsements, setEndorsements] = useState<Endorsement[]>([]);
+
+  useEffect(() => {
+    const fetchAllJobs = async () => {
+      try {
+        const data = await api.getJobs();
+        setJobs(data); 
+      } catch (error) {
+        console.error('Failed to fetch jobs from backend:', error);
+      }
+    };
+    fetchAllJobs();
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -77,7 +90,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addContractorJob = useCallback((job: Job) => {
     setContractorJobs(prev => [job, ...prev]);
-    // Also add to main job feed
     setJobs(prev => [job, ...prev]);
   }, []);
 
@@ -91,6 +103,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const addAppliedJob = useCallback((job: AppliedJob) => {
+    setAppliedJobs(prev => [job, ...prev]);
+  }, []);
+
   return (
     <AppContext.Provider value={{
       userRole, setUserRole, isLoggedIn, setIsLoggedIn,
@@ -100,6 +116,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       workerAbout, setWorkerAbout,
       workerSkills, setWorkerSkills,
       endorsements, addEndorsement,
+      appliedJobs, addAppliedJob
     }}>
       {children}
     </AppContext.Provider>
