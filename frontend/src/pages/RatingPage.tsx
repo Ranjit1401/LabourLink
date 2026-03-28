@@ -1,13 +1,16 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import StarRating from '../components/StarRating';
 import { useApp } from '../context/AppContext';
-
+import { api } from '../utils/api';
 const STRENGTHS = ['Punctual', 'Clean Workspace', 'Expert Knowledge', 'Communication', 'Professional', 'Safety-Conscious'];
 
 export default function RatingPage() {
   const navigate = useNavigate();
   const { showToast } = useApp();
+  const location = useLocation();
+  const workerEmail = location.state?.email || '';
+  const workerName = location.state?.name || 'Marcus Chen';
   const [rating, setRating] = useState(0);
   const [selectedStrengths, setSelectedStrengths] = useState<string[]>([]);
   const [comment, setComment] = useState('');
@@ -17,7 +20,7 @@ export default function RatingPage() {
     setSelectedStrengths(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       showToast('Please select a star rating', 'error');
       return;
@@ -26,9 +29,15 @@ export default function RatingPage() {
       showToast('Please write at least 20 characters in your review', 'error');
       return;
     }
-    setSubmitted(true);
-    showToast('Rating submitted successfully! ⭐', 'success');
-    setTimeout(() => navigate(-1), 2000);
+  
+    try {
+      await api.rateUser(workerEmail, rating);
+      setSubmitted(true);
+      showToast('Rating submitted successfully!', 'success');
+      setTimeout(() => navigate(-1), 2000);
+    } catch (error: any) {
+      showToast(error.message || 'Failed to submit rating. Try again.', 'error');
+    }
   };
 
   return (
@@ -57,7 +66,7 @@ export default function RatingPage() {
                 </div>
               </div>
               <div className="text-center">
-                <h2 className="font-headline text-xl font-bold text-on-surface">Marcus Chen</h2>
+              <h2 className="font-headline text-xl font-bold text-on-surface">{workerName}</h2>
                 <p className="text-on-surface-variant font-medium text-sm mb-4">Master Electrician</p>
                 <div className="bg-surface-container rounded-lg p-3 text-left">
                   <div className="flex justify-between text-xs font-semibold uppercase tracking-widest text-on-surface-variant mb-1">
@@ -116,7 +125,7 @@ export default function RatingPage() {
                     <textarea
                       className="w-full rounded-xl bg-surface-container-highest border-none focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest text-on-surface p-4 placeholder:text-on-surface-variant/50 transition-all"
                       id="review-text"
-                      placeholder="Share your experience working with Marcus..."
+                      placeholder={`Share your experience working with ${workerName.split(' ')[0]}...`}
                       rows={5}
                       value={comment}
                       onChange={e => setComment(e.target.value)}

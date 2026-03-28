@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MOCK_WORKER } from '../utils/mockData';
 import type { CompletedJob, Endorsement } from '../types';
+import { api } from '../utils/api';
 
 const StarRating = ({ count }: { count: number }) => (
   <div className="flex items-center text-amber-500 justify-end mb-1">
@@ -17,7 +18,19 @@ const StarRating = ({ count }: { count: number }) => (
 );
 
 const ProfilePage = () => {
-  const worker = MOCK_WORKER;
+  const [worker, setWorker] = useState(MOCK_WORKER);
+
+useEffect(() => {
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    try {
+      const { email } = JSON.parse(userStr);
+      api.getProfile(email).then(setWorker).catch(console.error);
+    } catch (e) {
+      console.error('Failed to parse user', e);
+    }
+  }
+}, []);
   const [referralCopied, setReferralCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'portfolio' | 'history'>('portfolio');
 

@@ -1,21 +1,29 @@
 import { useState } from 'react';
 import type { Job } from '../types';
+import { api } from '../utils/api';
 
 interface JobCardProps {
   job: Job;
   variant?: 'feed' | 'listing';
+  onApply?: (jobId: string, title: string, company: string) => void;
 }
 
-const JobCard = ({ job, variant = 'feed' }: JobCardProps) => {
+const JobCard = ({ job, variant = 'feed', onApply }: JobCardProps) => {
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [likeCount, setLikeCount] = useState(job.likes ?? 0);
 
-  const handleLike = () => {
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+  const handleLike = async () => {
+    const newLiked = !liked;
+    setLiked(newLiked);
+    setLikeCount((c) => (newLiked ? c + 1 : c - 1));
+    try {
+      await api.likePost((job as any)._id || job.id);
+    } catch (e) {
+      setLiked(!newLiked);
+      setLikeCount((c) => (newLiked ? c - 1 : c + 1));
+    }
   };
-
   if (variant === 'listing') {
     return (
       <div className="group bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(45,51,55,0.06)] hover:-translate-y-1 transition-all duration-300">
@@ -62,8 +70,11 @@ const JobCard = ({ job, variant = 'feed' }: JobCardProps) => {
           </div>
         </div>
 
-        <button className="w-full mt-4 py-3 bg-surface-container text-on-surface font-bold rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">
-          View Details
+        <button
+          onClick={() => onApply?.((job as any)._id || job.id, job.title, job.company)}
+          className="w-full mt-4 py-3 bg-surface-container text-on-surface font-bold rounded-lg group-hover:bg-primary group-hover:text-white transition-colors"
+        >
+          Apply Now
         </button>
       </div>
     );
@@ -137,7 +148,10 @@ const JobCard = ({ job, variant = 'feed' }: JobCardProps) => {
 
         {/* Actions */}
         <div className="flex gap-3">
-          <button className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dim transition-colors">
+          <button
+            onClick={() => onApply?.((job as any)._id || job.id, job.title, job.company)}
+            className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dim transition-colors"
+          >
             Apply Now
           </button>
           <button

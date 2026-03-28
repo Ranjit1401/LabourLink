@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Post } from '../types';
+import { api } from '../utils/api';
 
 interface PostCardProps {
   post: Post;
@@ -8,6 +9,8 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes);
+  const [showComment, setShowComment] = useState(false);
+const [commentText, setCommentText] = useState('');
 
   const handleLike = () => {
     setLiked((p) => !p);
@@ -73,16 +76,45 @@ const PostCard = ({ post }: PostCardProps) => {
             </span>
             {likeCount}
           </button>
-          <button className="flex items-center gap-2 text-sm font-semibold hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-xl">comment</span>
-            {post.comments}
-          </button>
+          <button
+              onClick={() => setShowComment(p => !p)}
+              className="flex items-center gap-2 text-sm font-semibold hover:text-primary transition-colors"
+            >
+              <span className="material-symbols-outlined text-xl">comment</span>
+              {post.comments}
+            </button>
         </div>
         <button className="flex items-center gap-2 text-sm font-semibold hover:text-primary transition-colors">
           <span className="material-symbols-outlined text-xl">share</span>
           Share
         </button>
       </div>
+
+      {showComment && (
+        <div className="px-5 pb-4 flex gap-2">
+          <input
+            className="flex-1 px-4 py-2 bg-surface-container rounded-xl text-sm border-none focus:ring-2 focus:ring-primary"
+            placeholder="Write a comment..."
+            value={commentText}
+            onChange={e => setCommentText(e.target.value)}
+          />
+          <button
+            onClick={async () => {
+              if (!commentText.trim()) return;
+              try {
+                await api.commentPost((post as any)._id || post.id, commentText);
+                setCommentText('');
+                setShowComment(false);
+              } catch (e) {
+                console.error('Comment failed', e);
+              }
+            }}
+            className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold"
+          >
+            Send
+          </button>
+        </div>
+      )}
     </article>
   );
 };

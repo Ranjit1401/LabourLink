@@ -83,7 +83,7 @@ export default function JobsPage() {
               // Featured card for first item
               if (idx === 0) {
                 return (
-                  <div key={job.id} className="md:col-span-2 group relative overflow-hidden bg-inverse-surface text-white p-8 rounded-2xl shadow-xl flex flex-col md:flex-row gap-8 items-center">
+                  <div key={(job as any)._id || job.id} className="md:col-span-2 group relative overflow-hidden bg-inverse-surface text-white p-8 rounded-2xl shadow-xl flex flex-col md:flex-row gap-8 items-center">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full -mr-20 -mt-20"></div>
                     <div className="flex-1 z-10">
                       <span className="bg-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 inline-block">Featured</span>
@@ -110,7 +110,7 @@ export default function JobsPage() {
                 );
               }
               return (
-                <div key={job.id} className="group bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(45,51,55,0.06)] hover:translate-y-[-4px] transition-all duration-300">
+                <div key={(job as any)._id || job.id} className="group bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(45,51,55,0.06)] hover:translate-y-[-4px] transition-all duration-300">
                   <div className="flex justify-between items-start mb-4">
                     <div className="p-3 bg-primary-container/20 rounded-lg">
                       <span className="material-symbols-outlined text-primary text-3xl">{job.icon || 'work'}</span>

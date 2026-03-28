@@ -408,5 +408,14 @@ def rate_user(email: str, data: RatingModel):
         {"email": email},
         {"$push": {"ratings": data.rating}}
     )
+@app.get("/job-applicants/{job_id}")
+def get_job_applicants(job_id: str, user=Depends(verify_token)):
+    if user["role"] != "contractor":
+        raise HTTPException(status_code=403, detail="Only contractors can view applicants")
+    
+    applicants = list(applications_collection.find(
+        {"job_id": job_id},
+        {"_id": 0}
+    ))
 
     return {"message": "Rating added"}

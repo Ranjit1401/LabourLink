@@ -92,5 +92,70 @@ export const api = {
     if (!res.ok) throw new Error('Failed to fetch profile');
     return res.json();
   },
+  getNotifications: async () => {
+    const res = await fetch(`${BASE_URL}/notifications`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch notifications');
+    return res.json();
+  },
+
+  markNotificationsRead: async () => {
+    const res = await fetch(`${BASE_URL}/mark-read`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to mark read');
+    return res.json();
+  },
+
+  rateUser: async (email: string, rating: number) => {
+    const res = await fetch(`${BASE_URL}/rate-user/${email}`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ rating }),
+    });
+    if (!res.ok) throw new Error('Failed to submit rating');
+    return res.json();
+  },
+
+  likePost: async (postId: string) => {
+    const res = await fetch(`${BASE_URL}/like-post/${postId}`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to like post');
+    return res.json();
+  },
+
+  commentPost: async (postId: string, text: string) => {
+    const fd = new FormData();
+    fd.append('text', text);
+    const res = await fetch(`${BASE_URL}/comment-post/${postId}`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: fd,
+    });
+    if (!res.ok) throw new Error('Failed to comment');
+    return res.json();
+  },
+
+  getMyApplications: async () => {
+    const res = await fetch(`${BASE_URL}/my-applications`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch applications');
+    return res.json();
+  },
+  getJobApplicants: async (jobId: string) => {
+    const res = await fetch(`${BASE_URL}/job-applicants/${jobId}`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch applicants');
+    return res.json();
+  },
+
 };
+
+
 

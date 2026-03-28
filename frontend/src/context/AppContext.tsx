@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { UserRole, ToastMessage, Job, Notification, Endorsement } from '../types';
-import { api } from '../utils/api'; 
+import { api } from '../utils/api';
 
 export interface AppliedJob {
   id: string;
@@ -70,6 +70,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     fetchAllJobs();
   }, []);
+  useEffect(() => {
+    if (!token) return;
+  
+    const fetchNotifications = async () => {
+      try {
+        const data = await api.getNotifications();
+        // map backend shape to frontend Notification type
+        const mapped = data.map((n: any) => ({
+          id: n._id || Math.random().toString(),
+          type: n.type || 'job',
+          title: n.message,
+          message: n.message,
+          time: new Date(n.created_at).toLocaleString(),
+          read: n.seen,
+          icon: n.type === 'job' ? 'work' : 'dynamic_feed',
+        }));
+        setNotifications(mapped);
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+      }
+    };
+  
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30_000);
+    return () => clearInterval(interval);
+  }, [token]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
