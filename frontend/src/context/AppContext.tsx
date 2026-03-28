@@ -16,6 +16,8 @@ interface AppState {
   isLoggedIn: boolean;
   setIsLoggedIn: (v: boolean) => void;
   jobs: Job[];
+  token: string | null;        // ADD THIS
+  setToken: (t: string | null) => void;
   addJob: (job: Job) => void;
   contractorJobs: Job[];
   addContractorJob: (job: Job) => void;
@@ -39,8 +41,11 @@ interface AppState {
 const AppContext = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [userRole, setUserRole] = useState<UserRole>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole>(
+    localStorage.getItem('userRole') as UserRole ?? null
+  );
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   
   const [jobs, setJobs] = useState<Job[]>([]);
   const [contractorJobs, setContractorJobs] = useState<Job[]>([]);
@@ -110,6 +115,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       userRole, setUserRole, isLoggedIn, setIsLoggedIn,
+      token, setToken,
       jobs, addJob, contractorJobs, addContractorJob,
       notifications, markAllRead, unreadCount,
       toasts, showToast, removeToast,

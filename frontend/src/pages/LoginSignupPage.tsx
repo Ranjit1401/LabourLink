@@ -5,7 +5,7 @@ import { api } from '../utils/api';
 
 export default function LoginSignupPage() {
   const navigate = useNavigate();
-  const { setUserRole, setIsLoggedIn, showToast } = useApp();
+  const { setUserRole, setIsLoggedIn, setToken, showToast } = useApp();
   
   const [selectedRole, setSelectedRole] = useState<'worker' | 'contractor'>('worker');
   const [isSignup, setIsSignup] = useState(false);
@@ -50,7 +50,8 @@ export default function LoginSignupPage() {
         setUserRole(mappedRole);
         setIsLoggedIn(true);
         showToast(`Welcome Back! Logged in as ${mappedRole}`, 'success');
-        
+        setToken(data.token);
+        localStorage.setItem('userRole', mappedRole);
         if (mappedRole === 'worker') {
           navigate('/worker-profile');
         } else {
