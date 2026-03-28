@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function JobsPage() {
-  const { jobs, showToast } = useApp();
+  const { jobs } = useApp();
   const [search, setSearch] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
@@ -17,10 +18,6 @@ export default function JobsPage() {
     const matchSkills = selectedSkills.length === 0 || job.skills.some(s => selectedSkills.some(sel => s.toLowerCase().includes(sel.toLowerCase())));
     return matchSearch && matchSkills && job.status === 'open';
   }) : [];
-
-  const handleApply = (jobTitle: string) => {
-    showToast(`Successfully applied to "${jobTitle}"! 🎉`, 'success');
-  };
 
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen pb-24">
@@ -88,7 +85,9 @@ export default function JobsPage() {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full -mr-20 -mt-20"></div>
                     <div className="flex-1 z-10">
                       <span className="bg-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 inline-block">Featured</span>
-                      <h2 className="font-headline font-extrabold text-3xl mb-2">{job.title}</h2>
+                      <Link to={`/jobs/${job.id}`}>
+                        <h2 className="font-headline font-extrabold text-3xl mb-2 hover:text-primary-container transition-colors cursor-pointer">{job.title}</h2>
+                      </Link>
                       <p className="text-slate-300 text-sm max-w-md">{job.description}</p>
                       <div className="flex gap-8 mt-8">
                         <div>
@@ -100,12 +99,12 @@ export default function JobsPage() {
                           <span className="text-2xl font-bold">{job.location}</span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleApply(job.title)}
-                        className="mt-6 px-8 py-3 bg-white text-primary font-bold rounded-xl hover:opacity-90 transition-all active:scale-95"
+                      <Link
+                        to={`/jobs/${job.id}`}
+                        className="mt-6 px-8 py-3 bg-white text-primary font-bold rounded-xl hover:opacity-90 transition-all active:scale-95 inline-block"
                       >
-                        Apply Now
-                      </button>
+                        View Details
+                      </Link>
                     </div>
                   </div>
                 );
@@ -124,7 +123,9 @@ export default function JobsPage() {
                       </span>
                     )}
                   </div>
-                  <h3 className="font-headline font-bold text-xl group-hover:text-primary transition-colors">{job.title}</h3>
+                  <Link to={`/jobs/${job.id}`}>
+                    <h3 className="font-headline font-bold text-xl group-hover:text-primary transition-colors cursor-pointer">{job.title}</h3>
+                  </Link>
                   <p className="text-on-surface-variant text-sm mt-2 line-clamp-2">{job.description}</p>
                   <div className="mt-6 flex items-center justify-between border-t border-surface-container pt-4">
                     <div className="flex flex-col">
@@ -138,12 +139,12 @@ export default function JobsPage() {
                       </span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleApply(job.title)}
-                    className="w-full mt-4 py-3 bg-surface-container text-on-surface font-bold rounded-lg group-hover:bg-primary group-hover:text-on-primary transition-colors"
+                  <Link
+                    to={`/jobs/${job.id}`}
+                    className="w-full mt-4 py-3 bg-surface-container text-on-surface font-bold rounded-lg group-hover:bg-primary group-hover:text-on-primary transition-colors block text-center"
                   >
-                    Apply Now
-                  </button>
+                    View Details
+                  </Link>
                 </div>
               );
             })}

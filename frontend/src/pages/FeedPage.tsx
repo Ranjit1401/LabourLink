@@ -1,14 +1,11 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { NEWS_ITEMS } from '../utils/mockData';
 
 export default function JobFeedPage() {
   const { jobs, showToast } = useApp();
   const [postText, setPostText] = useState('');
-
-  const handleApply = (jobTitle: string) => {
-    showToast(`Successfully applied to "${jobTitle}"! 🎉`, 'success');
-  };
 
   const handlePost = () => {
     if (postText.trim()) {
@@ -101,7 +98,9 @@ export default function JobFeedPage() {
                     </button>
                   </div>
                   <div className="space-y-3 mb-6">
-                    <h2 className="text-lg font-extrabold text-on-surface tracking-tight">{job.title}</h2>
+                    <Link to={`/jobs/${job.id}`}>
+                      <h2 className="text-lg font-extrabold text-on-surface tracking-tight hover:text-primary transition-colors cursor-pointer">{job.title}</h2>
+                    </Link>
                     <div className="flex flex-wrap gap-2">
                       {job.skills.map(skill => (
                         <span key={skill} className="px-3 py-1 bg-surface-container-high rounded-full text-xs font-bold text-on-surface-variant">{skill}</span>
@@ -130,12 +129,12 @@ export default function JobFeedPage() {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <button
-                      onClick={() => handleApply(job.title)}
-                      className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dim transition-colors"
+                    <Link
+                      to={`/jobs/${job.id}`}
+                      className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dim transition-colors text-center"
                     >
-                      Apply Now
-                    </button>
+                      View Details
+                    </Link>
                     <button className="px-4 py-3 bg-surface-container-highest text-on-surface font-bold rounded-xl hover:bg-surface-container-high transition-colors">
                       <span className="material-symbols-outlined">bookmark</span>
                     </button>
