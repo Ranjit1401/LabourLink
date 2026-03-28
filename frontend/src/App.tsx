@@ -11,6 +11,8 @@ import FeedPage from './pages/FeedPage';
 import JobsPage from './pages/JobsPage';
 import JobDetailsPage from './pages/JobDetailsPage';
 import RatingPage from './pages/RatingPage';
+import Connections from './pages/Connections';
+
 
 function App() {
   return (
@@ -35,8 +37,10 @@ function App() {
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:id" element={<JobDetailsPage />} />
           <Route path="/rating" element={<RatingPage />} />
+          <Route path="/connections" element={<Connections />} />
           {/* Fallback */}
           <Route path="*" element={<LandingPage />} />
+          
         </Routes>
       </div>
       <BottomNav />
