@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
+import { t } from '../utils/i18n';
 
 export default function LoginSignupPage() {
   const navigate = useNavigate();
-  const { setUserRole, setIsLoggedIn, setToken, showToast } = useApp();
+  const { setUserRole, setIsLoggedIn, setToken, showToast, language } = useApp();
   
   const [selectedRole, setSelectedRole] = useState<'worker' | 'contractor'>('worker');
   const [isSignup, setIsSignup] = useState(false);
@@ -33,7 +34,7 @@ export default function LoginSignupPage() {
           // referral_code: referralCode 
         });
         
-        showToast('Account created successfully! Please log in.', 'success');
+        showToast(t(language, 'accountCreatedSuccess'), 'success');
         setIsSignup(false); 
         setPassword(''); 
       } else {
@@ -52,6 +53,7 @@ export default function LoginSignupPage() {
         showToast(`Welcome Back! Logged in as ${mappedRole}`, 'success');
         setToken(data.token);
         localStorage.setItem('userRole', mappedRole);
+        showToast(`${t(language, 'welcomeBack')} ${mappedRole}`, 'success');
         if (mappedRole === 'worker') {
           navigate('/worker-profile');
         } else {
@@ -59,7 +61,7 @@ export default function LoginSignupPage() {
         }
       }
     } catch (error: any) {
-      showToast(error.message || 'Authentication failed. Please check your details.', 'error');
+      showToast(error.message || t(language, 'authFailed'), 'error');
     }
   };
 
@@ -67,7 +69,7 @@ export default function LoginSignupPage() {
     <div className="bg-background font-body text-on-background antialiased min-h-screen flex flex-col">
       <div className="w-full bg-secondary-fixed py-2 px-6 flex justify-center items-center space-x-2">
         <span className="material-symbols-outlined text-on-secondary-fixed text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-        <p className="font-label text-xs font-bold tracking-wide text-on-secondary-fixed uppercase">Verified Skilled Professionals Network</p>
+        <p className="font-label text-xs font-bold tracking-wide text-on-secondary-fixed uppercase">{t(language, 'verifiedNetwork')}</p>
       </div>
 
       <main className="flex-grow flex items-center justify-center p-6 md:p-12 relative overflow-hidden">
@@ -77,7 +79,7 @@ export default function LoginSignupPage() {
             <div className="space-y-4">
               <h1 className="text-primary font-headline text-6xl font-extrabold tracking-tight cursor-pointer" onClick={() => navigate('/')}>LabourLink</h1>
               <p className="text-on-surface-variant font-headline text-2xl leading-relaxed max-w-md">
-                Your professional <span className="text-secondary font-bold">Sanctuary</span> for dignified, high-quality labor connections.
+                {t(language, 'sanctuaryHeadline')}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -104,16 +106,16 @@ export default function LoginSignupPage() {
             <div className="bg-surface-container-lowest rounded-[2rem] p-8 md:p-10 shadow-[0_12px_32px_rgba(45,51,55,0.06)] border border-outline-variant/10">
               <div className="mb-8 text-center lg:text-left">
                 <h2 className="font-headline text-3xl font-bold text-on-surface tracking-tight">
-                  {isSignup ? 'Create Account' : 'Welcome Back'}
+                  {isSignup ? t(language, 'createAccount') : t(language, 'welcomeBack')}
                 </h2>
                 <p className="text-on-surface-variant mt-2">
-                  {isSignup ? 'Join the verified professional network' : 'Sign in to manage your professional journey'}
+                  {isSignup ? t(language, 'joinNetwork') : t(language, 'signInJourney')}
                 </p>
               </div>
 
               {isSignup && (
                 <div className="mb-8">
-                  <p className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4 ml-1">Identify Your Role</p>
+                  <p className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4 ml-1">{t(language, 'identifyYourRole')}</p>
                   <div className="flex gap-3">
                     <button type="button" onClick={() => setSelectedRole('worker')}
                       className={`flex-1 flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
@@ -121,7 +123,7 @@ export default function LoginSignupPage() {
                       }`}
                     >
                       <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: selectedRole === 'worker' ? "'FILL' 1" : "'FILL' 0" }}>engineering</span>
-                      <span className="font-headline text-sm font-bold">Worker</span>
+                      <span className="font-headline text-sm font-bold">{t(language, 'worker')}</span>
                     </button>
                     <button type="button" onClick={() => setSelectedRole('contractor')}
                       className={`flex-1 flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
@@ -129,7 +131,7 @@ export default function LoginSignupPage() {
                       }`}
                     >
                       <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: selectedRole === 'contractor' ? "'FILL' 1" : "'FILL' 0" }}>domain</span>
-                      <span className="font-headline text-sm font-bold">Contractor</span>
+                      <span className="font-headline text-sm font-bold">{t(language, 'contractor')}</span>
                     </button>
                   </div>
                 </div>
@@ -139,25 +141,25 @@ export default function LoginSignupPage() {
                 {isSignup && (
                   <div className="space-y-1.5">
                     <input className="w-full h-12 px-5 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
-                      id="name" placeholder="Full Name (e.g., John Doe)" type="text" value={name} onChange={e => setName(e.target.value)} required={isSignup} />
+                      id="name" placeholder={t(language, 'fullNamePlaceholder')} type="text" value={name} onChange={e => setName(e.target.value)} required={isSignup} />
                   </div>
                 )}
 
                 <div className="space-y-1.5">
                   <input className="w-full h-12 px-5 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
-                    id="email" placeholder="Email Address" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+                    id="email" placeholder={t(language, 'emailAddress')} type="email" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
 
                 {isSignup && (
                   <div className="space-y-1.5">
                     <input className="w-full h-12 px-5 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
-                      id="phone" placeholder="Phone Number" type="tel" value={phone} onChange={e => setPhone(e.target.value)} required={isSignup} />
+                      id="phone" placeholder={t(language, 'phoneNumber')} type="tel" value={phone} onChange={e => setPhone(e.target.value)} required={isSignup} />
                   </div>
                 )}
 
                 <div className="space-y-1.5">
                   <input className="w-full h-12 px-5 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
-                    id="password" placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                    id="password" placeholder={t(language, 'password')} type="password" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
 
                 {/* Naya Referral Code input */}
@@ -167,19 +169,19 @@ export default function LoginSignupPage() {
                       <span className="material-symbols-outlined text-[14px]">redeem</span> Got a Referral Code?
                     </label>
                     <input className="w-full h-12 px-5 bg-surface-container-highest border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
-                      id="referral" placeholder="Referral Code (Optional)" type="text" value={referralCode} onChange={e => setReferralCode(e.target.value)} />
+                      id="referral" placeholder={t(language, 'referralCodeOptional')} type="text" value={referralCode} onChange={e => setReferralCode(e.target.value)} />
                   </div>
                 )}
 
                 <button type="submit" className="w-full h-14 bg-gradient-to-r from-primary to-primary-dim text-on-primary font-headline font-bold text-lg rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4">
-                  {isSignup ? 'Create Account' : 'Enter Sanctuary'}
+                  {isSignup ? t(language, 'createAccount') : t(language, 'enterSanctuary')}
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
               </form>
 
               <div className="mt-8 flex flex-col items-center space-y-4">
                 <button type="button" onClick={() => { setIsSignup(!isSignup); setPassword(''); setReferralCode(''); }} className="w-full h-12 border-2 border-secondary text-secondary font-headline font-bold rounded-xl hover:bg-secondary/5 transition-colors">
-                  {isSignup ? 'Sign In Instead' : 'Create Professional Account'}
+                  {isSignup ? t(language, 'signInInstead') : t(language, 'createProfessionalAccount')}
                 </button>
               </div>
             </div>

@@ -347,11 +347,33 @@ def send_request(receiver: str, user=Depends(verify_token)):
     if sender == receiver:
         raise HTTPException(status_code=400, detail="Cannot send to self")
 
+    # check already exists
+    existing = connections_collection.find_one({
+        "$or": [
+            {"sender": sender, "receiver": receiver},
+            {"sender": receiver, "receiver": sender}
+        ]
+    })
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Already exists")
+
+    # save connection request
     connections_collection.insert_one({
         "sender": sender,
         "receiver": receiver,
         "status": "pending",
         "created_at": datetime.utcnow()
+    })
+
+    # ✅ ADD NOTIFICATION (IMPORTANT FIX)
+    notifications_collection.insert_one({
+        "user_email": receiver,
+        "message": f"{sender} sent you a connection request",
+        "type": "connection",
+        "sender": sender,
+        "created_at": datetime.utcnow(),
+        "seen": False
     })
 
     return {"message": "Request sent"}
@@ -495,17 +517,117 @@ async def send_connection_request(payload: dict = Body(...)):
     return {"msg": "Request sent successfully"}
 
 @app.get("/api/users/suggestions")
-async def get_suggestions():
-    # users_collection se random 10 users uthao (excluding current user logic aap add kar sakte ho)
+async def get_suggestions(user=Depends(verify_token)):
+
+    current_user = user["email"]
+
     users = list(users_collection.aggregate([
-        {"$sample": {"size": 10}} 
+        {"$match": {"email": {"$ne": current_user}}},  # exclude self
+        {"$sample": {"size": 10}}
     ]))
-    
+
     output = []
-    for user in users:
+
+    for u in users:
         output.append({
-            "_id": str(user["_id"]),
-            "name": user.get("name", "Unknown"),
-            "role": user.get("role", "Worker")
+            "_id": str(u["_id"]),
+            "name": u.get("name", "Unknown"),
+            "email": u.get("email"),   # 🔥 THIS FIXES YOUR ERROR
+            "role": u.get("role", "Worker")
         })
+
     return output
+
+    # ================= GET ALL USERS =================
+@app.get("/users")
+def get_all_users(user=Depends(verify_token)):
+
+    current_user = user["email"]
+
+    users = users_collection.find(
+        {"email": {"$ne": current_user}},  # exclude self
+        {"password": 0}  # hide password
+    )
+
+    result = []
+
+    for u in users:
+        u["_id"] = str(u["_id"])
+
+        # check connection status
+        connection = connections_collection.find_one({
+            "$or": [
+                {"sender": current_user, "receiver": u["email"]},
+                {"sender": u["email"], "receiver": current_user}
+            ]
+        })
+
+        if connection:
+            u["connection_status"] = connection["status"]  # pending / accepted
+        else:
+            u["connection_status"] = "none"
+
+        result.append(u)
+
+    return result
+
+    # ================= USER SUGGESTIONS =================
+@app.get("/api/users/suggestions")
+def get_user_suggestions(user=Depends(verify_token)):
+
+    current_user = user["email"]
+
+    users = users_collection.find(
+        {"email": {"$ne": current_user}},
+        {"password": 0}
+    )
+
+    result = []
+
+    for u in users:
+        existing = connections_collection.find_one({
+            "$or": [
+                {"sender": current_user, "receiver": u["email"]},
+                {"sender": u["email"], "receiver": current_user}
+            ]
+        })
+
+        if not existing:
+            result.append({
+                "_id": str(u["_id"]),
+                "name": u.get("name"),
+                "email": u.get("email"),   # ✅ THIS LINE IS THE FIX
+                "role": u.get("role")
+            })
+
+    return result
+    # ================= GET PENDING REQUESTS =================
+@app.get("/pending-requests")
+def get_pending_requests(user=Depends(verify_token)):
+
+    email = user["email"]
+
+    requests = connections_collection.find({
+        "receiver": email,
+        "status": "pending"
+    })
+
+    result = []
+
+    for r in requests:
+        sender_user = users_collection.find_one(
+            {"email": r["sender"]}
+        )
+
+        if sender_user:
+            result.append({
+                "_id": str(r["_id"]),
+                "sender": {
+                    "name": sender_user.get("name"),
+                    "email": sender_user.get("email"),
+                    "role": sender_user.get("role"),
+                    "location": sender_user.get("location", "")
+                }
+            })
+
+    return result
