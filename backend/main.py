@@ -412,13 +412,51 @@ def rate_user(email: str, data: RatingModel):
 def get_job_applicants(job_id: str, user=Depends(verify_token)):
     if user["role"] != "contractor":
         raise HTTPException(status_code=403, detail="Only contractors can view applicants")
-    
     applicants = list(applications_collection.find(
         {"job_id": job_id},
         {"_id": 0}
     ))
+    return applicants
 
-    return {"message": "Rating added"}
+# ================= APPROVE APPLICANT =================
+@app.patch("/approve-applicant")
+def approve_applicant(data: dict, user=Depends(verify_token)):
+    if user["role"] != "contractor":
+        raise HTTPException(status_code=403, detail="Only contractors")
+    job_id = data.get("job_id")
+    worker_email = data.get("worker_email")
+    status = data.get("status")  # "approved" or "rejected"
+    if not all([job_id, worker_email, status]):
+        raise HTTPException(status_code=400, detail="Missing fields")
+    applications_collection.update_one(
+        {"job_id": job_id, "user_email": worker_email},
+        {"$set": {"status": status}}
+    )
+    return {"message": f"Status updated to {status}"}
+
+# ================= BULK RATE (all workers on a project) =================
+@app.post("/bulk-rate")
+def bulk_rate(data: dict, user=Depends(verify_token)):
+    if user["role"] != "contractor":
+        raise HTTPException(status_code=403, detail="Only contractors")
+    ratings = data.get("ratings", [])  # [{ "email": str, "rating": int }]
+    job_id = data.get("job_id")
+    for r in ratings:
+        email = r.get("email")
+        rating = r.get("rating")
+        if not email or not rating or not (1 <= rating <= 5):
+            continue
+        users_collection.update_one(
+            {"email": email},
+            {"$push": {"ratings": rating}}
+        )
+    # Mark job as completed
+    if job_id:
+        jobs_collection.update_one(
+            {"_id": ObjectId(job_id)},
+            {"$set": {"status": "completed"}}
+        )
+    return {"message": "Bulk rating submitted"}
 
 from fastapi import APIRouter, HTTPException
 

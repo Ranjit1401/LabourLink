@@ -3,8 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+const getHeaders = (): Record<string, string> => {
+  const token = localStorage.getItem('token');
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+};
+
 export default function ContractorDashboardPage() {
-  const { contractorJobs, addContractorJob, showToast } = useApp();
+  const { showToast } = useApp();
   const navigate = useNavigate();
   const [showPostForm, setShowPostForm] = useState(false);
   const [jobTitle, setJobTitle] = useState('');
@@ -14,27 +23,38 @@ export default function ContractorDashboardPage() {
   const [jobSkills, setJobSkills] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
+  const [myJobs, setMyJobs] = useState<any[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
   const [applications, setApplications] = useState<any[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
-  
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchAll = async () => {
       try {
         const userStr = localStorage.getItem('user');
-        if (userStr) {
-          const userObj = JSON.parse(userStr);
-          if (userObj.email) {
-            const realData = await api.getProfile(userObj.email);
-            setProfileData(realData);
-          }
+        if (!userStr) return;
+        const userObj = JSON.parse(userStr);
+
+        if (userObj.email) {
+          const realData = await api.getProfile(userObj.email);
+          setProfileData(realData);
         }
+
+        setLoadingJobs(true);
+        const allJobs = await api.getJobs();
+        const mine = allJobs.filter(
+          (j: any) => j.created_by === userObj.email || j.company === userObj.name
+        );
+        setMyJobs(mine);
       } catch (error) {
-        console.error('Failed to load contractor profile', error);
+        console.error('Failed to load dashboard data', error);
+        showToast('Failed to load dashboard data', 'error');
+      } finally {
+        setLoadingJobs(false);
       }
     };
-    fetchProfile();
+    fetchAll();
   }, []);
 
   const contractorName = profileData?.name || 'Contractor';
@@ -61,8 +81,8 @@ export default function ContractorDashboardPage() {
         icon: 'work',
         applicants: 0,
       };
-      await api.createJob(jobData);
-      addContractorJob({ ...jobData, wageUnit: 'day' as const, status: 'open' as const, id: 'temp-' + Date.now(), postedAt: 'Just now' });
+      const created = await api.createJob(jobData);
+      setMyJobs(prev => [{ ...jobData, _id: created?._id || 'temp-' + Date.now(), postedAt: 'Just now' }, ...prev]);
       showToast('Job posted successfully!', 'success');
       setShowPostForm(false);
       setJobTitle(''); setJobLocation(''); setJobWage(''); setJobDesc(''); setJobSkills('');
@@ -81,9 +101,9 @@ export default function ContractorDashboardPage() {
     setSelectedJobId(jobId);
     setLoadingApplicants(true);
     try {
-      // fetch all applications then filter by job
-      const filtered = await api.getJobApplicants(jobId);
-      setApplications(filtered);
+      const res = await fetch(`${BASE_URL}/job-applicants/${jobId}`, { headers: getHeaders() });
+      const data = await res.json();
+      setApplications(Array.isArray(data) ? data : []);
     } catch (error) {
       showToast('Failed to load applicants', 'error');
     } finally {
@@ -200,7 +220,9 @@ export default function ContractorDashboardPage() {
                 </div>
                 <div>
                   <span className="text-on-surface-variant text-sm font-medium uppercase tracking-widest">Active Jobs</span>
-                  <h3 className="text-4xl font-extrabold text-on-surface mt-1">{contractorJobs.length}</h3>
+                  <h3 className="text-4xl font-extrabold text-on-surface mt-1">
+                  {loadingJobs ? '...' : myJobs.length}
+                  </h3>
                 </div>
               </div>
               <div className="bg-surface-container-lowest p-6 rounded-xl border-b-4 border-secondary/20 flex flex-col gap-4">
@@ -229,13 +251,17 @@ export default function ContractorDashboardPage() {
                 <h2 className="font-headline text-xl font-bold">Manage Active Recruitment</h2>
               </div>
               <div className="divide-y divide-surface-variant/20">
-                {contractorJobs.length === 0 ? (
+                {loadingJobs ? (
+                  <div className="p-8 text-center text-on-surface-variant">
+                    <span className="material-symbols-outlined text-primary text-4xl animate-spin">progress_activity</span>
+                  </div>
+                ) : myJobs.length === 0 ? (
                   <div className="p-8 text-center text-on-surface-variant">
                     No jobs posted yet. Create your first job posting!
                   </div>
                 ) : (
-                  contractorJobs.map(job => (
-                    <div key={(job as any)._id || job.id}>
+                  myJobs.map(job => (
+                    <div key={job._id || job.id}>
                       <div className="p-6 flex flex-col md:flex-row md:items-center gap-6 hover:bg-surface-container-low/50 transition-colors">
                         <div className="w-16 h-16 rounded-xl bg-surface-dim flex items-center justify-center shrink-0">
                           <span className="material-symbols-outlined text-primary text-2xl">{job.icon || 'work'}</span>
@@ -262,15 +288,15 @@ export default function ContractorDashboardPage() {
                           </div>
                         </div>
                         <button
-                          onClick={() => handleManage((job as any)._id || job.id)}
+                          onClick={() => handleManage(job._id || job.id)}
                           className="px-4 py-2 bg-primary text-white font-semibold text-sm rounded-lg hover:opacity-90 transition-colors"
                         >
-                          {selectedJobId === ((job as any)._id || job.id) ? 'Hide' : 'View Applicants'}
+                          {selectedJobId === (job._id || job.id) ? 'Hide' : 'View Applicants'}
                         </button>
                       </div>
 
                       {/* Applicants Panel */}
-                      {selectedJobId === ((job as any)._id || job.id) && (
+                      {selectedJobId === (job._id || job.id) && (
                         <div className="px-6 pb-6 bg-surface-container/30">
                           <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2">
                             <span className="material-symbols-outlined text-primary text-sm">group</span>
@@ -306,9 +332,7 @@ export default function ContractorDashboardPage() {
                                       {app.status}
                                     </span>
                                     <button
-                                      onClick={() => {
-                                        navigate(`/rating`, { state: { email: app.user_email, name: app.user_email } });
-                                      }}
+                                      onClick={() => navigate('/rating', { state: { email: app.user_email, name: app.user_email } })}
                                       className="px-3 py-1 text-xs font-bold bg-surface-container text-primary rounded-lg hover:bg-primary/10 transition-colors"
                                     >
                                       Rate
@@ -343,7 +367,7 @@ export default function ContractorDashboardPage() {
                   </div>
                 </div>
                 <div className="text-center p-6 bg-surface-container rounded-xl">
-                  <div className="text-4xl font-extrabold text-secondary mb-1">{contractorJobs.length}</div>
+                  <div className="text-4xl font-extrabold text-secondary mb-1">{myJobs.length}</div>
                   <p className="text-sm text-on-surface-variant font-medium">Jobs Posted</p>
                 </div>
                 <div className="text-center p-6 bg-surface-container rounded-xl">

@@ -100,7 +100,7 @@ export default function JobsPage() {
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate(`/jobs/${job.id}`)}
+                        onClick={() => navigate(`/jobs/${(job as any)._id || job.id}`)}
                         className="mt-6 px-8 py-3 bg-white text-primary font-bold rounded-xl hover:opacity-90 transition-all active:scale-95"
                       >
                         View Details
@@ -138,7 +138,7 @@ export default function JobsPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => navigate(`/jobs/${job.id}`)}
+                    onClick={() => navigate(`/jobs/${(job as any)._id || job.id}`)}
                     className="w-full mt-4 py-3 bg-surface-container text-on-surface font-bold rounded-lg group-hover:bg-primary group-hover:text-on-primary transition-colors"
                   >
                     View Details
