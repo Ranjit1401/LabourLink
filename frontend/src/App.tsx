@@ -13,6 +13,8 @@ import FeedPage from './pages/FeedPage';
 import JobsPage from './pages/JobsPage';
 import JobDetailsPage from './pages/JobDetailsPage';
 import RatingPage from './pages/RatingPage';
+import Connections from './pages/Connections';
+
 import NotificationsPage from './pages/NotificationsPage';
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
@@ -41,6 +43,11 @@ function App() {
           <Route path="/dashboard" element={<PrivateRoute><ContractorDashboardPage /></PrivateRoute>} />
 
           {/* Shared pages */}
+          <Route path="/feed" element={<FeedPage />} />
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/jobs/:id" element={<JobDetailsPage />} />
+          <Route path="/rating" element={<RatingPage />} />
+          <Route path="/connections" element={<Connections />} />
           <Route path="/feed" element={<PrivateRoute><FeedPage /></PrivateRoute>} />
           <Route path="/jobs" element={<PrivateRoute><JobsPage /></PrivateRoute>} />
           <Route path="/jobs/:id" element={<PrivateRoute><JobDetailsPage /></PrivateRoute>} />
@@ -48,6 +55,7 @@ function App() {
           <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
           {/* Fallback */}
           <Route path="*" element={<LandingPage />} />
+          
         </Routes>
         
       </div>

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Form,Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from database import (
@@ -18,8 +18,8 @@ from pydantic import BaseModel, EmailStr
 from typing import Literal, List
 import cloudinary
 import cloudinary.uploader
+from flask import Flask, request, jsonify
 from bson import ObjectId
-
 # ================= ENV =================
 load_dotenv()
 
@@ -419,3 +419,93 @@ def get_job_applicants(job_id: str, user=Depends(verify_token)):
     ))
 
     return {"message": "Rating added"}
+
+from fastapi import APIRouter, HTTPException
+
+# 1. Use @app.get instead of @app.route
+@app.get('/api/connections/pending/{user_id}')
+async def get_pending_requests(user_id: str):
+    try:
+        # Find requests where receiver matches and status is pending
+        pending = list(connections_collection.find({
+            "receiver_id": user_id,
+            "status": "pending"
+        }))
+        
+        results = []
+        for req in pending:
+            # Fetch sender details from users_collection
+            # Note: Ensure sender_id is stored as a string or convert to ObjectId
+            sender = users_collection.find_one({"_id": ObjectId(req["sender_id"])})
+            if sender:
+                results.append({
+                    "_id": str(req["_id"]),
+                    "sender": {
+                        "name": sender.get("name"),
+                        "role": sender.get("role"),
+                        "location": sender.get("location")
+                    }
+                })
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 2. Use @app.patch for updates
+@app.patch('/api/connections/update')
+async def update_connection(data: dict):
+    try:
+        request_id = data.get('request_id')
+        status = data.get('status')
+        
+        result = connections_collection.update_one(
+            {"_id": ObjectId(request_id)},
+            {"$set": {"status": status}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Request not found")
+            
+        return {"msg": "Updated successfully", "status": status}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.post("/api/connections/send")
+async def send_connection_request(payload: dict = Body(...)):
+    sender_id = payload.get("sender_id")
+    receiver_id = payload.get("receiver_id")
+    
+    if not sender_id or not receiver_id:
+        raise HTTPException(status_code=400, detail="Missing IDs")
+
+    # Check if already exists
+    existing = connections_collection.find_one({
+        "sender_id": sender_id, 
+        "receiver_id": receiver_id
+    })
+    
+    if existing:
+        return {"msg": "Already sent"}
+
+    connections_collection.insert_one({
+        "sender_id": sender_id,
+        "receiver_id": receiver_id,
+        "status": "pending"
+    })
+    return {"msg": "Request sent successfully"}
+
+@app.get("/api/users/suggestions")
+async def get_suggestions():
+    # users_collection se random 10 users uthao (excluding current user logic aap add kar sakte ho)
+    users = list(users_collection.aggregate([
+        {"$sample": {"size": 10}} 
+    ]))
+    
+    output = []
+    for user in users:
+        output.append({
+            "_id": str(user["_id"]),
+            "name": user.get("name", "Unknown"),
+            "role": user.get("role", "Worker")
+        })
+    return output
