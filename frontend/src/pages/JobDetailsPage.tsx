@@ -20,7 +20,7 @@ export default function JobDetailsPage() {
     const fetchJob = async () => {
       try {
         const jobs = await api.getJobs();
-        const found = jobs.find((j: any) => (j._id || j.id) === id);
+        const found = jobs.find((j: any) => (j._id === id || j.id === id || String(j._id) === String(id)));
         if (found) setJob(found);
       } catch (e) {
         showToast(t(language, 'failedToLoadJobDetails'), 'error');

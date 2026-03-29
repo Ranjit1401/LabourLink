@@ -39,7 +39,7 @@ export default function JobFeedPage() {
         console.error("Error reading user data", e);
       }
     }
-  }, []);
+  }, [language]);
 
   const [applyModal, setApplyModal] = useState<{isOpen: boolean, jobId: string, jobTitle: string, company: string}>({isOpen: false, jobId: '', jobTitle: '', company: ''});
   const [agreedToTc, setAgreedToTc] = useState(false);
@@ -88,7 +88,11 @@ export default function JobFeedPage() {
   };
 
   const handlePost = async () => {
-    if (!postText.trim()) return;
+    if (!postText.trim() && !selectedFile) return;
+    if (!postText.trim()) {
+      showToast(t(language, 'pleaseAddText'), 'info');
+      return;
+    }
     if (!selectedFile) {
       showToast(t(language, 'selectPhotoRequired'), 'info');
       return;
@@ -256,7 +260,7 @@ export default function JobFeedPage() {
               </div>
             ) : (
               jobs.filter(j => j.status === 'open' || !j.status).map(job => (
-                <article key={job._id || job.id} className="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container overflow-hidden mb-4">
+                <article key={job.id} className="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container overflow-hidden mb-4">
                   <div className="p-4 sm:p-5">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex gap-3">
@@ -264,7 +268,7 @@ export default function JobFeedPage() {
                           <span className="material-symbols-outlined">{job.icon || 'engineering'}</span>
                         </div>
                         <div>
-                          <h3 className="font-bold text-on-surface leading-tight text-sm line-clamp-1">{job.created_by || job.company || t(language, 'verifiedContractor')}</h3>
+                        <h3 className="font-bold text-on-surface leading-tight text-sm line-clamp-1">{job.company || t(language, 'verifiedContractor')}</h3>
                           <p className="text-xs text-on-surface-variant">{job.postedAt || t(language, 'recently')} • <span className="text-secondary font-bold">{t(language, 'verified')}</span></p>
                         </div>
                       </div>
@@ -300,7 +304,7 @@ export default function JobFeedPage() {
                     </div>
                     <div className="flex gap-3">
                       <button
-                        onClick={() => handleOpenApply(job._id || job.id || '', job.title, job.company || '')}
+                        onClick={() => handleOpenApply(job.id || '', job.title, job.company || '')}
                         className="flex-1 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dim transition-colors text-sm"
                       >
                         {t(language, 'applyNow')}

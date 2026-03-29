@@ -1,21 +1,29 @@
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useApp } from "../context/AppContext";
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 import { LANGUAGES, t } from "../utils/i18n";
 import { api } from "../utils/api";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const {
-    isLoggedIn, setIsLoggedIn, showToast,
-    token, unreadCount,
-    language, setLanguage,
+  const location = useLocation();
+  const { 
+    isLoggedIn, 
+    setIsLoggedIn, 
+    setToken, 
+    showToast, 
+    token, 
+    unreadCount, 
+    userRole,
+    language, 
+    setLanguage 
   } = useApp();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
+  
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -39,14 +47,31 @@ export default function Navbar() {
   }, [token]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
     setIsLoggedIn(false);
-    showToast("Logged out successfully", "success");
-    navigate("/");
+    setToken(null);
+    showToast('Logged out successfully', 'success');
+    navigate('/');
   };
 
-  // currentLang matches against lowercase codes ("en", "hi", …)
+  // Role-aware nav links
+  const navLinks = userRole === 'contractor'
+    ? [
+        { path: '/contractor-dashboard', icon: 'home', label: 'Home' },
+        { path: '/my-projects', icon: 'folder_managed', label: 'My Projects' },
+        { path: '/jobs', icon: 'work', label: 'Jobs' },
+        { path: '/connections', icon: 'group', label: 'Connections' },
+      ]
+    : [
+        { path: '/feed', icon: 'home', label: 'Home' },
+        { path: '/connections', icon: 'group', label: 'Connections' },
+        { path: '/jobs', icon: 'work', label: 'Jobs' },
+        { path: '/worker-profile', icon: 'person', label: 'Profile' },
+      ];
+
+  const homePath = userRole === 'contractor' ? '/contractor-dashboard' : '/feed';
   const currentLang = LANGUAGES.find((l) => l.code === language);
 
   return (
@@ -55,59 +80,50 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
 
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/feed")}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate(homePath)}>
             <span className="material-symbols-outlined text-primary text-3xl">handshake</span>
             <span className="font-headline font-bold text-xl text-primary tracking-tight">LabourLink</span>
           </div>
 
           {/* Nav Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="/feed" className="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
-              <span className="text-[10px] font-bold mt-1">{t(language, 'home')}</span>
-            </a>
-            <a href="/connections" className="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors">
-              <span className="material-symbols-outlined">group</span>
-              <span className="text-[10px] font-bold mt-1">{t(language, 'connections')}</span>
-            </a>
-            <a href="/jobs" className="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors">
-              <span className="material-symbols-outlined">work</span>
-              <span className="text-[10px] font-bold mt-1">{t(language, 'jobs')}</span>
-            </a>
-            <a href="/worker-profile" className="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors">
-              <span className="material-symbols-outlined">person</span>
-              <span className="text-[10px] font-bold mt-1">{t(language, 'profile')}</span>
-            </a>
+          <div className="hidden md:flex items-center space-x-6">
+            {navLinks.map(({ path, icon, label }) => {
+              const isActive = location.pathname === path;
+              return (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`flex flex-col items-center transition-colors ${isActive ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
+                >
+                  <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>
+                    {icon}
+                  </span>
+                  <span className="text-[10px] font-bold mt-1">{label}</span>
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Right-side actions */}
+          {/* Right actions */}
           <div className="flex items-center gap-4">
-
+            
             {/* Language switcher */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen((prev) => !prev)}
-                aria-haspopup="listbox"
-                aria-expanded={dropdownOpen}
                 className="flex items-center gap-1 text-on-surface-variant hover:bg-surface-container-high px-2 py-1 rounded-md transition-all"
               >
                 <span className="material-symbols-outlined text-[18px]">language</span>
                 <span className="text-xs font-bold">{currentLang?.nativeLabel ?? "English"}</span>
                 <span className="material-symbols-outlined text-[16px]">arrow_drop_down</span>
               </button>
-
               {dropdownOpen && (
-                <ul
-                  role="listbox"
-                  className="absolute right-0 mt-2 w-36 bg-surface-container-lowest border border-surface-container rounded-lg shadow-xl py-1 z-50"
-                >
+                <ul className="absolute right-0 mt-2 w-36 bg-surface-container-lowest border border-surface-container rounded-lg shadow-xl py-1 z-50">
                   {LANGUAGES.map((lang) => (
                     <li
                       key={lang.code}
-                      role="option"
-                      aria-selected={language === lang.code}
                       onClick={() => {
-                        setLanguage(lang.code);   // lowercase "en","hi",… directly
+                        setLanguage(lang.code);
                         setDropdownOpen(false);
                       }}
                       className={`px-4 py-2 text-sm cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors font-medium

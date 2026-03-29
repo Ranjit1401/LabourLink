@@ -6,7 +6,7 @@ import { api } from '../utils/api';
 export default function WorkerProfilePage() {
   const { workerAbout, setWorkerAbout, workerSkills, setWorkerSkills, showToast, appliedJobs, language } = useApp();
   const [loading, setLoading] = useState(true);
-
+  const [profileData, setProfileData] = useState<any>(null);
   // States for Editing
   const [editingAbout, setEditingAbout] = useState(false);
   const [aboutDraft, setAboutDraft] = useState(workerAbout);
