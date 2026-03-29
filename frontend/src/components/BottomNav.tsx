@@ -1,12 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { t } from '../utils/i18n';
 
 const HIDDEN_PATHS = ['/', '/signup', '/login'];
 
 export default function BottomNav() {
   const location = useLocation();
-  const { userRole } = useApp();
+  const { userRole, language } = useApp();
 const token = localStorage.getItem('token'); // read directly from localStorage
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -38,16 +39,16 @@ const token = localStorage.getItem('token'); // read directly from localStorage
   const links =
     userRole === 'contractor'
       ? [
-          { label: 'Home', icon: 'home', path: '/contractor-dashboard' },
-          { label: 'Jobs', icon: 'work', path: '/jobs' },
-          { label: 'Feed', icon: 'dynamic_feed', path: '/feed' },
-          { label: 'Profile', icon: 'person', path: '/contractor-profile' }, // ✅ fixed
+          { label: t(language, 'home'), icon: 'home', path: '/contractor-dashboard' },
+          { label: t(language, 'jobs'), icon: 'work', path: '/jobs' },
+          { label: t(language, 'feed'), icon: 'dynamic_feed', path: '/feed' },
+          { label: t(language, 'profile'), icon: 'person', path: '/contractor-profile' }, // ✅ fixed
         ]
       : [
-          { label: 'Home', icon: 'home', path: '/feed' },
-          { label: 'Jobs', icon: 'search', path: '/jobs' },
-          { label: 'Rate', icon: 'star', path: '/rating' },
-          { label: 'Profile', icon: 'person', path: '/worker-profile' },
+          { label: t(language, 'home'), icon: 'home', path: '/feed' },
+          { label: t(language, 'jobs'), icon: 'search', path: '/jobs' },
+          { label: t(language, 'rate'), icon: 'star', path: '/rating' },
+          { label: t(language, 'profile'), icon: 'person', path: '/worker-profile' },
         ];
 
   return (

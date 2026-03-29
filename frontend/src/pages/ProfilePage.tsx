@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { MOCK_WORKER } from '../utils/mockData';
 import type { CompletedJob, Endorsement } from '../types';
 import { api } from '../utils/api';
+import { t } from '../utils/i18n';
+import { useApp } from '../context/AppContext';
 
 const StarRating = ({ count }: { count: number }) => (
   <div className="flex items-center text-amber-500 justify-end mb-1">
@@ -18,6 +20,7 @@ const StarRating = ({ count }: { count: number }) => (
 );
 
 const ProfilePage = () => {
+  const { language } = useApp();
   const [worker, setWorker] = useState(MOCK_WORKER);
 
 useEffect(() => {
@@ -45,8 +48,8 @@ useEffect(() => {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col h-screen sticky top-20 py-6 space-y-2 w-64 shrink-0 border-r border-surface-container-high bg-slate-50">
         <div className="px-6 mb-6">
-          <p className="text-xl font-bold text-blue-700 font-headline">Worker Portal</p>
-          <p className="text-xs text-on-surface-variant font-medium">Verified Skilled Professional</p>
+          <p className="text-xl font-bold text-blue-700 font-headline">{t(language, 'workerPortal')}</p>
+          <p className="text-xs text-on-surface-variant font-medium">{t(language, 'verifiedSkilledProfessional')}</p>
         </div>
         {[
           { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
@@ -73,7 +76,7 @@ useEffect(() => {
             href="/jobs"
             className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center"
           >
-            Find New Work
+            {t(language, 'findNewWork')}
           </a>
         </div>
       </aside>
@@ -90,10 +93,10 @@ useEffect(() => {
               verified
             </span>
             <span className="text-sm font-bold uppercase tracking-wide">
-              Identity Verified &amp; Background Checked
+              {t(language, 'identityVerifiedBackgroundChecked')}
             </span>
           </div>
-          <span className="text-xs font-semibold opacity-80">Last check: Oct 2023</span>
+          <span className="text-xs font-semibold opacity-80">{t(language, 'lastCheck')}</span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -118,7 +121,7 @@ useEffect(() => {
                   <div className="flex items-center justify-between">
                     <span className="text-on-surface-variant text-sm flex items-center gap-2">
                       <span className="material-symbols-outlined text-primary">location_on</span>
-                      Location
+                      {t(language, 'locationLabel')}
                     </span>
                     <span className="font-semibold text-on-surface">{worker.location}</span>
                   </div>
@@ -130,7 +133,7 @@ useEffect(() => {
                       >
                         star
                       </span>
-                      Trust Score
+                      {t(language, 'trustScoreLabel')}
                     </span>
                     <span className="font-bold text-on-surface">
                       {worker.trustScore}{' '}
@@ -140,7 +143,7 @@ useEffect(() => {
                   <div className="flex items-center justify-between">
                     <span className="text-on-surface-variant text-sm flex items-center gap-2">
                       <span className="material-symbols-outlined text-secondary">task_alt</span>
-                      Jobs Completed
+                      {t(language, 'jobsCompletedLabel')}
                     </span>
                     <span className="font-bold text-on-surface">{worker.jobsCompleted}</span>
                   </div>
@@ -148,18 +151,18 @@ useEffect(() => {
                   <div className="flex gap-6 pt-2 border-t border-surface-container">
                     <div className="text-center">
                       <p className="font-extrabold text-on-surface text-lg">{worker.followers}</p>
-                      <p className="text-xs text-on-surface-variant">Followers</p>
+                      <p className="text-xs text-on-surface-variant">{t(language, 'followersLabel')}</p>
                     </div>
                     <div className="text-center">
                       <p className="font-extrabold text-on-surface text-lg">{worker.following}</p>
-                      <p className="text-xs text-on-surface-variant">Following</p>
+                      <p className="text-xs text-on-surface-variant">{t(language, 'followingLabel')}</p>
                     </div>
                   </div>
                 </div>
 
                 <button className="w-full mt-8 bg-primary text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
                   <span className="material-symbols-outlined">message</span>
-                  Hire {worker.name.split(' ')[0]}
+                  {t(language, 'hireWorker', { firstName: worker.name.split(' ')[0] })}
                 </button>
               </div>
             </div>
@@ -168,10 +171,10 @@ useEffect(() => {
             <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl p-6 border border-primary/20">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-primary">card_giftcard</span>
-                <h3 className="font-bold text-on-surface font-headline">Referral Code</h3>
+                <h3 className="font-bold text-on-surface font-headline">{t(language, 'referralCode')}</h3>
               </div>
               <p className="text-sm text-on-surface-variant mb-4">
-                Share your code and earn ₹500 for every verified hire!
+                {t(language, 'referralCodeDesc')}
               </p>
               <div className="flex items-center gap-2 bg-white rounded-xl p-3 border border-primary/20">
                 <code className="flex-1 font-mono text-primary font-bold tracking-widest text-sm">
@@ -184,7 +187,7 @@ useEffect(() => {
                   <span className="material-symbols-outlined text-sm">
                     {referralCopied ? 'check' : 'content_copy'}
                   </span>
-                  {referralCopied ? 'Copied!' : 'Copy'}
+                  {referralCopied ? t(language, 'copied') : t(language, 'copy')}
                 </button>
               </div>
             </div>
@@ -193,7 +196,7 @@ useEffect(() => {
             <div className="bg-surface-container p-6 rounded-xl">
               <h3 className="text-lg font-bold mb-4 flex items-center gap-2 font-headline">
                 <span className="material-symbols-outlined text-primary">military_tech</span>
-                Skill Endorsements
+                {t(language, 'skillEndorsements')}
               </h3>
               <div className="flex flex-wrap gap-3">
                 {worker.endorsements.map((e: Endorsement) => (

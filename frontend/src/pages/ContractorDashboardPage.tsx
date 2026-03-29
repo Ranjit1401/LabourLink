@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { t } from '../utils/i18n';
 import { api } from '../utils/api';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -13,7 +14,7 @@ const getHeaders = (): Record<string, string> => {
 };
 
 export default function ContractorDashboardPage() {
-  const { showToast } = useApp();
+  const { contractorJobs, addContractorJob, showToast } = useApp();
   const navigate = useNavigate();
   const [showPostForm, setShowPostForm] = useState(false);
   const [jobTitle, setJobTitle] = useState('');
@@ -28,7 +29,7 @@ export default function ContractorDashboardPage() {
   const [applications, setApplications] = useState<any[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
-
+  const language = 'en';
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -64,7 +65,7 @@ export default function ContractorDashboardPage() {
   const handlePostJob = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!jobTitle.trim() || !jobLocation.trim() || !jobWage.trim()) {
-      showToast('Please fill in all required fields', 'error');
+      showToast('Please fill all required fields', 'error');
       return;
     }
     setIsSubmitting(true);
@@ -81,13 +82,13 @@ export default function ContractorDashboardPage() {
         icon: 'work',
         applicants: 0,
       };
-      const created = await api.createJob(jobData);
-      setMyJobs(prev => [{ ...jobData, _id: created?._id || 'temp-' + Date.now(), postedAt: 'Just now' }, ...prev]);
+      await api.createJob(jobData);
+      addContractorJob({ ...jobData, wageUnit: 'day' as const, status: 'open' as const, id: 'temp-' + Date.now(), postedAt: 'Just now' });
       showToast('Job posted successfully!', 'success');
       setShowPostForm(false);
       setJobTitle(''); setJobLocation(''); setJobWage(''); setJobDesc(''); setJobSkills('');
     } catch (error: any) {
-      showToast(error.message || 'Failed to post job.', 'error');
+      showToast(error.message || t('en', 'failedToPostJob'), 'error'); // Replace 'en' with the appropriate language code if needed
     } finally {
       setIsSubmitting(false);
     }
@@ -105,7 +106,7 @@ export default function ContractorDashboardPage() {
       const data = await res.json();
       setApplications(Array.isArray(data) ? data : []);
     } catch (error) {
-      showToast('Failed to load applicants', 'error');
+      showToast(t(language, 'failedToLoadApplicants'), 'error');
     } finally {
       setLoadingApplicants(false);
     }
@@ -114,7 +115,7 @@ export default function ContractorDashboardPage() {
   const copyReferralCode = () => {
     const code = `REF-${contractorName.substring(0, 4).toUpperCase()}-2024`;
     navigator.clipboard.writeText(code);
-    showToast(`Referral Code ${code} copied!`, 'success');
+    showToast(t(language, 'referralCodeCopied').replace('{code}', code), 'success');
   };
 
   return (
@@ -124,28 +125,28 @@ export default function ContractorDashboardPage() {
         {/* Side Nav */}
         <aside className="hidden md:flex flex-col gap-2 p-4 h-screen w-64 border-r border-slate-200 bg-slate-50 sticky top-20">
           <div className="mb-6 px-4 py-2">
-            <h2 className="font-headline text-xl font-bold text-blue-700">Contractor Portal</h2>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Verified Employer</p>
+            <h2 className="font-headline text-xl font-bold text-blue-700">{t(language, 'contractorPortal')}</h2>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t(language, 'verifiedEmployer')}</p>
           </div>
           <nav className="flex flex-col gap-1">
             <div className="flex items-center gap-3 bg-blue-50 text-blue-700 rounded-lg px-4 py-2 font-semibold text-sm">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>event_note</span>
-              Dashboard
+              {t(language, 'dashboard')}
             </div>
             <a href="/jobs" className="flex items-center gap-3 hover:bg-slate-200 text-slate-600 px-4 py-2 font-semibold text-sm rounded-lg transition-all">
-              <span className="material-symbols-outlined">work</span> Posted Jobs
+              <span className="material-symbols-outlined">work</span> {t(language, 'postedJobs')}
             </a>
             <a href="/feed" className="flex items-center gap-3 hover:bg-slate-200 text-slate-600 px-4 py-2 font-semibold text-sm rounded-lg transition-all">
-              <span className="material-symbols-outlined">dynamic_feed</span> Feed
+              <span className="material-symbols-outlined">dynamic_feed</span> {t(language, 'feed')}
             </a>
             <a href="/notifications" className="flex items-center gap-3 hover:bg-slate-200 text-slate-600 px-4 py-2 font-semibold text-sm rounded-lg transition-all">
-              <span className="material-symbols-outlined">notifications</span> Notifications
+              <span className="material-symbols-outlined">notifications</span> {t(language, 'notificationsTitle')}
             </a>
           </nav>
           <div className="mt-auto p-4 bg-surface-container rounded-xl">
-            <p className="text-xs text-on-surface-variant mb-3">Need more hands?</p>
+            <p className="text-xs text-on-surface-variant mb-3">{t(language, 'needMoreHands')}</p>
             <a href="/jobs" className="block w-full text-center py-2 px-4 bg-primary text-on-primary rounded-lg font-bold text-sm">
-              Find Workers
+              {t(language, 'findWorkers')}
             </a>
           </div>
         </aside>
@@ -167,46 +168,46 @@ export default function ContractorDashboardPage() {
                 className="flex items-center gap-2 px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition-all active:scale-95"
               >
                 <span className="material-symbols-outlined">{showPostForm ? 'close' : 'add'}</span>
-                {showPostForm ? 'Cancel' : 'Post New Job'}
+                {showPostForm ? t(language, 'cancel') : t(language, 'postNewJob')}
               </button>
             </div>
 
             {/* Post Job Form */}
             {showPostForm && (
               <div className="bg-surface-container-lowest rounded-xl p-8 shadow-lg border border-outline-variant/10 mb-10">
-                <h2 className="font-headline text-2xl font-bold mb-6">Create Job Posting</h2>
+                <h2 className="font-headline text-2xl font-bold mb-6">{t(language, 'createJobPosting')}</h2>
                 <form onSubmit={handlePostJob} className="space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
-                      <label className="text-sm font-semibold">Job Title *</label>
+                      <label className="text-sm font-semibold">{t(language, 'jobTitle')}</label>
                       <input className="w-full h-12 px-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface"
-                        placeholder="e.g., Senior Site Foreman" value={jobTitle} onChange={e => setJobTitle(e.target.value)} required />
+                        placeholder={t(language, 'jobTitlePlaceholder')} value={jobTitle} onChange={e => setJobTitle(e.target.value)} required />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm font-semibold">Location *</label>
+                      <label className="text-sm font-semibold">{t(language, 'location')}</label>
                       <input className="w-full h-12 px-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface"
-                        placeholder="e.g., Downtown Metro Project" value={jobLocation} onChange={e => setJobLocation(e.target.value)} required />
+                        placeholder={t(language, 'locationPlaceholder')} value={jobLocation} onChange={e => setJobLocation(e.target.value)} required />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm font-semibold">Wage *</label>
+                      <label className="text-sm font-semibold">{t(language, 'wage')} *</label>
                       <input className="w-full h-12 px-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface"
-                        placeholder="e.g., ₹500 - ₹800" value={jobWage} onChange={e => setJobWage(e.target.value)} required />
+                        placeholder={t(language, 'wagePlaceholder')} value={jobWage} onChange={e => setJobWage(e.target.value)} required />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm font-semibold">Required Skills (comma-separated)</label>
+                      <label className="text-sm font-semibold">{t(language, 'requiredSkills')}</label>
                       <input className="w-full h-12 px-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface"
-                        placeholder="e.g., Carpentry, Safety, Formwork" value={jobSkills} onChange={e => setJobSkills(e.target.value)} />
+                        placeholder={t(language, 'requiredSkillsPlaceholder')} value={jobSkills} onChange={e => setJobSkills(e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold">Description</label>
+                    <label className="text-sm font-semibold">{t(language, 'description')}</label>
                     <textarea className="w-full p-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface"
-                      rows={3} placeholder="Describe the job requirements..." value={jobDesc} onChange={e => setJobDesc(e.target.value)} />
+                      rows={3} placeholder={t(language, 'jobDescriptionPlaceholder')} value={jobDesc} onChange={e => setJobDesc(e.target.value)} />
                   </div>
                   <button type="submit" disabled={isSubmitting}
                     className={`px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90 active:scale-95'}`}>
                     <span className="material-symbols-outlined">{isSubmitting ? 'hourglass_empty' : 'publish'}</span>
-                    {isSubmitting ? 'Publishing...' : 'Publish Job'}
+                    {isSubmitting ? t(language, 'publishing') : t(language, 'publishJob')}
                   </button>
                 </form>
               </div>
@@ -220,9 +221,7 @@ export default function ContractorDashboardPage() {
                 </div>
                 <div>
                   <span className="text-on-surface-variant text-sm font-medium uppercase tracking-widest">Active Jobs</span>
-                  <h3 className="text-4xl font-extrabold text-on-surface mt-1">
-                  {loadingJobs ? '...' : myJobs.length}
-                  </h3>
+                  <h3 className="text-4xl font-extrabold text-on-surface mt-1">{contractorJobs.length}</h3>
                 </div>
               </div>
               <div className="bg-surface-container-lowest p-6 rounded-xl border-b-4 border-secondary/20 flex flex-col gap-4">
@@ -230,7 +229,7 @@ export default function ContractorDashboardPage() {
                   <span className="material-symbols-outlined text-secondary">star</span>
                 </div>
                 <div>
-                  <span className="text-on-surface-variant text-sm font-medium uppercase tracking-widest">Avg Rating</span>
+                  <span className="text-on-surface-variant text-sm font-medium uppercase tracking-widest">{t(language, 'avgRating')}</span>
                   <h3 className="text-4xl font-extrabold text-on-surface mt-1">{averageRating || '—'}</h3>
                 </div>
               </div>
@@ -239,7 +238,7 @@ export default function ContractorDashboardPage() {
                   <span className="material-symbols-outlined text-tertiary">person_check</span>
                 </div>
                 <div>
-                  <span className="text-on-surface-variant text-sm font-medium uppercase tracking-widest">Jobs Done</span>
+                  <span className="text-on-surface-variant text-sm font-medium uppercase tracking-widest">{t(language, 'jobsDone')}</span>
                   <h3 className="text-4xl font-extrabold text-on-surface mt-1">{totalHires}</h3>
                 </div>
               </div>
@@ -248,7 +247,7 @@ export default function ContractorDashboardPage() {
             {/* Posted Jobs List */}
             <div className="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/10 mb-12">
               <div className="px-6 py-4 border-b border-surface-variant/30">
-                <h2 className="font-headline text-xl font-bold">Manage Active Recruitment</h2>
+                <h2 className="font-headline text-xl font-bold">{t(language, 'manageActiveRecruitment')}</h2>
               </div>
               <div className="divide-y divide-surface-variant/20">
                 {loadingJobs ? (
@@ -257,7 +256,7 @@ export default function ContractorDashboardPage() {
                   </div>
                 ) : myJobs.length === 0 ? (
                   <div className="p-8 text-center text-on-surface-variant">
-                    No jobs posted yet. Create your first job posting!
+                    {t(language, 'noJobsPostedYet')}
                   </div>
                 ) : (
                   myJobs.map(job => (
@@ -291,7 +290,7 @@ export default function ContractorDashboardPage() {
                           onClick={() => handleManage(job._id || job.id)}
                           className="px-4 py-2 bg-primary text-white font-semibold text-sm rounded-lg hover:opacity-90 transition-colors"
                         >
-                          {selectedJobId === (job._id || job.id) ? 'Hide' : 'View Applicants'}
+                          {selectedJobId === ((job as any)._id || job.id) ? 'Hide' : 'View Applicants'}
                         </button>
                       </div>
 
@@ -300,12 +299,12 @@ export default function ContractorDashboardPage() {
                         <div className="px-6 pb-6 bg-surface-container/30">
                           <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2">
                             <span className="material-symbols-outlined text-primary text-sm">group</span>
-                            Applicants for {job.title}
+                            {t(language, 'applicantsFor').replace('{title}', job.title)}
                           </h3>
                           {loadingApplicants ? (
-                            <p className="text-sm text-on-surface-variant">Loading applicants...</p>
+                            <p className="text-sm text-on-surface-variant">{t(language, 'loadingApplicants')}</p>
                           ) : applications.length === 0 ? (
-                            <p className="text-sm text-on-surface-variant">No applicants yet for this job.</p>
+                            <p className="text-sm text-on-surface-variant">{t(language, 'noApplicantsYet')}</p>
                           ) : (
                             <div className="space-y-3">
                               {applications.map((app: any, idx: number) => (
@@ -353,12 +352,12 @@ export default function ContractorDashboardPage() {
             {/* Reputation */}
             <div className="bg-surface-container-lowest rounded-xl p-8 shadow-sm border border-outline-variant/10 mb-12">
               <h2 className="font-headline text-2xl font-bold mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">workspace_premium</span> Contractor Reputation
+                <span className="material-symbols-outlined text-primary">workspace_premium</span> {t(language, 'contractorReputation')}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center p-6 bg-surface-container rounded-xl">
                   <div className="text-4xl font-extrabold text-primary mb-1">{averageRating || '—'}</div>
-                  <p className="text-sm text-on-surface-variant font-medium">Average Rating</p>
+                  <p className="text-sm text-on-surface-variant font-medium">{t(language, 'avgRating')}</p>
                   <div className="flex justify-center gap-1 mt-2 text-amber-500">
                     {[1,2,3,4,5].map(s => (
                       <span key={s} className="material-symbols-outlined text-sm"
@@ -367,12 +366,12 @@ export default function ContractorDashboardPage() {
                   </div>
                 </div>
                 <div className="text-center p-6 bg-surface-container rounded-xl">
-                  <div className="text-4xl font-extrabold text-secondary mb-1">{myJobs.length}</div>
+                  <div className="text-4xl font-extrabold text-secondary mb-1">{contractorJobs.length}</div>
                   <p className="text-sm text-on-surface-variant font-medium">Jobs Posted</p>
                 </div>
                 <div className="text-center p-6 bg-surface-container rounded-xl">
                   <div className="text-4xl font-extrabold text-tertiary mb-1">{totalHires}</div>
-                  <p className="text-sm text-on-surface-variant font-medium">Jobs Done</p>
+                  <p className="text-sm text-on-surface-variant font-medium">{t(language, 'jobsDone')}</p>
                 </div>
               </div>
             </div>
@@ -380,10 +379,10 @@ export default function ContractorDashboardPage() {
             {/* Referral */}
             <div className="bg-surface-container-low p-8 rounded-xl border border-primary/20 shadow-sm">
               <h2 className="font-headline text-2xl font-bold mb-2 flex items-center gap-2 text-primary">
-                <span className="material-symbols-outlined">group_add</span> Refer & Earn
+                <span className="material-symbols-outlined">group_add</span> {t(language, 'referAndEarn')}
               </h2>
               <p className="text-on-surface-variant mb-6">
-                Invite contractors or workers to LabourLink and earn free job post boosts.
+                {t(language, 'referAndEarnDesc')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <div className="flex-1 bg-surface-container-highest p-4 rounded-xl flex items-center justify-between border border-outline-variant/30 w-full">
@@ -393,7 +392,7 @@ export default function ContractorDashboardPage() {
                 </div>
                 <button onClick={copyReferralCode}
                   className="w-full sm:w-auto px-6 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-sm">content_copy</span> Copy Code
+                  <span className="material-symbols-outlined text-sm">content_copy</span> {t(language, 'copyCode')}
                 </button>
               </div>
             </div>

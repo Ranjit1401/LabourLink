@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { api } from '../utils/api'; 
+import { t } from '../utils/i18n';
+import { api } from '../utils/api';
 
 export default function WorkerProfilePage() {
-  const { workerAbout, setWorkerAbout, workerSkills, setWorkerSkills, showToast, appliedJobs } = useApp();
-  
-  const [profileData, setProfileData] = useState<any>(null);
+  const { workerAbout, setWorkerAbout, workerSkills, setWorkerSkills, showToast, appliedJobs, language } = useApp();
   const [loading, setLoading] = useState(true);
-
+  const [profileData, setProfileData] = useState<any>(null);
   // States for Editing
   const [editingAbout, setEditingAbout] = useState(false);
   const [aboutDraft, setAboutDraft] = useState(workerAbout);
@@ -43,20 +42,20 @@ export default function WorkerProfilePage() {
   const saveAbout = () => {
     setWorkerAbout(aboutDraft);
     setEditingAbout(false);
-    showToast('About section updated locally!', 'success');
+    showToast(t(language, 'aboutUpdated'), 'success');
   };
 
   const addSkill = () => {
     if (newSkill.trim() && !workerSkills.includes(newSkill.trim())) {
       setWorkerSkills([...workerSkills, newSkill.trim()]);
       setNewSkill('');
-      showToast('Skill added locally!', 'success');
+      showToast(t(language, 'skillAdded'), 'success');
     }
   };
 
   const removeSkill = (skill: string) => {
     setWorkerSkills(workerSkills.filter(s => s !== skill));
-    showToast('Skill removed', 'info');
+    showToast(t(language, 'skillRemoved'), 'info');
   };
 
   const copyReferralCode = () => {
@@ -69,7 +68,7 @@ export default function WorkerProfilePage() {
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
-      showToast('Photo captured! Fetching GPS location...', 'info');
+      showToast(t(language, 'photoCapturedFetchGps'), 'info');
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -77,14 +76,14 @@ export default function WorkerProfilePage() {
             const lat = position.coords.latitude.toFixed(4);
             const lng = position.coords.longitude.toFixed(4);
             setPostText(prev => prev + `\n📍 [GPS Location: ${lat}, ${lng}]`);
-            showToast('GPS Location added to post!', 'success');
+            showToast(t(language, 'gpsLocationAdded'), 'success');
           },
           (error) => {
-            showToast('Could not fetch GPS location. Check permissions.', 'error');
+            showToast(t(language, 'gpsLocationFailed'), 'error');
           }
         );
       } else {
-        showToast('Geolocation is not supported by your browser.', 'error');
+        showToast(t(language, 'geolocationUnsupported'), 'error');
       }
     }
   };
@@ -97,18 +96,18 @@ export default function WorkerProfilePage() {
     }
 
     try {
-      showToast('Uploading post...', 'info');
+      showToast(t(language, 'uploadingPost'), 'info');
       const formData = new FormData();
       formData.append('description', postText);
       formData.append('skills', 'General'); 
       formData.append('file', selectedFile);
 
       await api.createPost(formData);
-      showToast('Post shared successfully!', 'success');
+      showToast(t(language, 'postSharedSuccessfully'), 'success');
       setPostText('');
       setSelectedFile(null);
     } catch (error: any) {
-      showToast('Failed to share post. Try again.', 'error');
+      showToast(t(language, 'failedToShare'), 'error');
     }
   };
 
@@ -133,7 +132,7 @@ export default function WorkerProfilePage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center font-bold text-primary">Loading Profile...</div>;
+    return <div className="min-h-screen flex items-center justify-center font-bold text-primary">{t(language, 'loadingProfile')}</div>;
   }
 
   return (
@@ -145,9 +144,9 @@ export default function WorkerProfilePage() {
           <div className="w-full bg-secondary-fixed text-on-secondary-fixed py-2 px-6 rounded-xl mb-8 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-              <span className="text-sm font-bold tracking-wide uppercase">Identity Verified</span>
+              <span className="text-sm font-bold tracking-wide uppercase">{t(language, 'identityVerifiedSmall')}</span>
             </div>
-            <span className="text-xs font-semibold opacity-80">Active</span>
+            <span className="text-xs font-semibold opacity-80">{t(language, 'active')}</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -167,25 +166,25 @@ export default function WorkerProfilePage() {
                   <div className="space-y-4 pt-4 border-t border-surface-container-high">
                     <div className="flex items-center justify-between">
                       <span className="text-on-surface-variant text-sm flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary-dim">visibility</span> Profile Views
+                        <span className="material-symbols-outlined text-primary-dim">visibility</span> {t(language, 'profileViews')}
                       </span>
                       <span className="font-semibold text-on-surface">{profileViews}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-on-surface-variant text-sm flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary-dim">group</span> Connections
+                        <span className="material-symbols-outlined text-primary-dim">group</span> {t(language, 'networkConnections')}
                       </span>
                       <span className="font-semibold text-on-surface">{connections}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-on-surface-variant text-sm flex items-center gap-2">
-                        <span className="material-symbols-outlined text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> Avg Rating
+                        <span className="material-symbols-outlined text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> {t(language, 'avgRating')}
                       </span>
                       <span className="font-bold text-on-surface">{avgRating} <span className="text-on-surface-variant font-normal">/ 5</span></span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-on-surface-variant text-sm flex items-center gap-2">
-                        <span className="material-symbols-outlined text-secondary">task_alt</span> Jobs Completed
+                        <span className="material-symbols-outlined text-secondary">task_alt</span> {t(language, 'jobsCompleted')}
                       </span>
                       <span className="font-bold text-on-surface">{jobsCompleted}</span>
                     </div>
@@ -200,9 +199,9 @@ export default function WorkerProfilePage() {
                 </div>
                 <div className="relative z-10">
                   <h3 className="text-lg font-bold flex items-center gap-2 text-primary mb-2">
-                    <span className="material-symbols-outlined">group_add</span> Refer & Earn
+                    <span className="material-symbols-outlined">group_add</span> {t(language, 'referAndEarn')}
                   </h3>
-                  <p className="text-sm text-on-surface-variant mb-4">Invite your contractor or worker friends and earn cash rewards.</p>
+                  <p className="text-sm text-on-surface-variant mb-4">{t(language, 'referAndEarnDesc')}</p>
                   <div className="bg-surface-container-highest p-3 rounded-lg flex items-center justify-between mb-4 border border-outline-variant/30">
                     <span className="font-mono font-bold tracking-wider text-on-surface">
                       REF-{workerName.substring(0,4).toUpperCase()}-2024
@@ -220,7 +219,7 @@ export default function WorkerProfilePage() {
               
               {/* Create Post Section in Profile */}
               <section className="bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-surface-container">
-                <h2 className="text-sm font-bold text-on-surface mb-3 uppercase tracking-wider text-outline-variant">Update Portfolio / Post</h2>
+                <h2 className="text-sm font-bold text-on-surface mb-3 uppercase tracking-wider">{t(language, 'updatePortfolioPost')}</h2>
                 <div className="flex gap-4">
                   <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant font-bold uppercase">
                     {userInitial}
@@ -240,14 +239,14 @@ export default function WorkerProfilePage() {
                 <div className="flex justify-between mt-4 px-2">
                   <div className="flex gap-2">
                     <button onClick={() => fileInputRef.current?.click()} className={`flex items-center gap-1 font-semibold text-sm p-2 rounded-lg transition-colors ${selectedFile ? 'text-primary bg-primary/10' : 'text-on-surface-variant hover:bg-surface-container'}`}>
-                      <span className="material-symbols-outlined text-primary text-[18px]">image</span> {selectedFile ? 'Added' : 'Gallery'}
+                      <span className="material-symbols-outlined text-primary text-[18px]">image</span> {selectedFile ? t(language, 'added') : t(language, 'gallery')}
                     </button>
                     <button onClick={() => cameraInputRef.current?.click()} className="flex items-center gap-1 text-on-surface-variant font-semibold text-sm hover:bg-surface-container p-2 rounded-lg transition-colors">
-                      <span className="material-symbols-outlined text-secondary text-[18px]">photo_camera</span> Camera (GPS)
+                      <span className="material-symbols-outlined text-secondary text-[18px]">photo_camera</span> {t(language, 'cameraGPS')}
                     </button>
                   </div>
                   <button onClick={handlePost} className="flex items-center gap-1 text-on-surface-variant font-semibold text-sm hover:bg-surface-container p-2 rounded-lg transition-colors">
-                    <span className="material-symbols-outlined text-tertiary">send</span> Post
+                    <span className="material-symbols-outlined text-tertiary">send</span> {t(language, 'post')}
                   </button>
                 </div>
               </section>
@@ -255,15 +254,15 @@ export default function WorkerProfilePage() {
               {/* ================= NEW: APPLIED JOBS STATUS ================= */}
               <section>
                 <h2 className="text-2xl font-extrabold text-on-surface mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">assignment</span> My Applied Jobs
+                  <span className="material-symbols-outlined text-primary">assignment</span> {t(language, 'myAppliedJobs')}
                 </h2>
                 
                 <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 overflow-hidden shadow-sm">
                   {(!appliedJobs || appliedJobs.length === 0) ? (
                     <div className="p-8 text-center text-on-surface-variant">
                       <span className="material-symbols-outlined text-4xl mb-2 opacity-50">pending_actions</span>
-                      <p className="font-medium">You haven't applied to any jobs yet.</p>
-                      <a href="/feed" className="text-primary font-bold hover:underline mt-2 inline-block">Find work</a>
+                      <p className="font-medium">{t(language, 'noAppliedJobsYet')}</p>
+                      <a href="/feed" className="text-primary font-bold hover:underline mt-2 inline-block">{t(language, 'findWork')}</a>
                     </div>
                   ) : (
                     <div className="divide-y divide-surface-variant/20">
@@ -274,7 +273,7 @@ export default function WorkerProfilePage() {
                             <p className="text-sm text-on-surface-variant flex items-center gap-1">
                               <span className="material-symbols-outlined text-[14px]">domain</span> {job.company}
                             </p>
-                            <p className="text-xs text-outline mt-1">Applied on: {job.appliedAt}</p>
+                            <p className="text-xs text-outline mt-1">{t(language, 'appliedOn')} {job.appliedAt}</p>
                           </div>
                           
                           <div className={`px-4 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap ${getStatusColor(job.status)} flex items-center gap-1.5`}>
@@ -294,10 +293,10 @@ export default function WorkerProfilePage() {
               {/* Skills Section */}
               <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-extrabold text-on-surface">Skills</h2>
+                  <h2 className="text-2xl font-extrabold text-on-surface">{t(language, 'skillsHeader')}</h2>
                   <button onClick={() => setEditingSkills(!editingSkills)} className="text-primary font-bold text-sm hover:underline flex items-center gap-1">
                     <span className="material-symbols-outlined text-sm">{editingSkills ? 'close' : 'edit'}</span>
-                    {editingSkills ? 'Done' : 'Edit Skills'}
+                    {editingSkills ? t(language, 'done') : t(language, 'editSkills')}
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -314,8 +313,8 @@ export default function WorkerProfilePage() {
                 </div>
                 {editingSkills && (
                   <div className="mt-4 flex gap-2">
-                    <input className="flex-1 px-4 py-2 bg-surface-container-highest border-none rounded-lg text-sm focus:ring-2 focus:ring-primary" placeholder="Add new skill..." value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => e.key === 'Enter' && addSkill()} />
-                    <button onClick={addSkill} className="px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:opacity-90">Add</button>
+                    <input className="flex-1 px-4 py-2 bg-surface-container-highest border-none rounded-lg text-sm focus:ring-2 focus:ring-primary" placeholder={t(language, 'addNewSkill')} value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => e.key === 'Enter' && addSkill()} />
+                    <button onClick={addSkill} className="px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:opacity-90">{t(language, 'add')}</button>
                   </div>
                 )}
               </section>

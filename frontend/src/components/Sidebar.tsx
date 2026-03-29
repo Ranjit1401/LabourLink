@@ -1,13 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
 import { MOCK_WORKER } from '../utils/mockData';
 import { NAV_ITEMS } from '../utils/helpers';
+import { useApp } from '../context/AppContext';
+import { t } from '../utils/i18n';
 
 interface SidebarProps {
   showStats?: boolean;
 }
 
+const labelTranslationKey: Record<string, string> = {
+  Dashboard: 'dashboard',
+  'My Profile': 'profile',
+  'Job Feed': 'jobFeed',
+  'Find Jobs': 'findJobs',
+  Earnings: 'earnings',
+};
+
 const Sidebar = ({ showStats = false }: SidebarProps) => {
   const location = useLocation();
+  const { language } = useApp();
 
   return (
     <aside className="hidden lg:flex lg:col-span-3 flex-col sticky top-24 space-y-4 h-fit">
@@ -55,6 +66,7 @@ const Sidebar = ({ showStats = false }: SidebarProps) => {
       <nav className="bg-surface-container-lowest rounded-xl py-4 shadow-sm">
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.path;
+          const translatedLabel = t(language, labelTranslationKey[item.label] ?? item.label.toLowerCase());
           return (
             <Link
               key={item.path}
@@ -66,7 +78,7 @@ const Sidebar = ({ showStats = false }: SidebarProps) => {
               }`}
             >
               <span className="material-symbols-outlined">{item.icon}</span>
-              <span>{item.label}</span>
+              <span>{translatedLabel}</span>
             </Link>
           );
         })}
@@ -78,7 +90,7 @@ const Sidebar = ({ showStats = false }: SidebarProps) => {
         className="w-full py-4 bg-gradient-to-r from-primary to-primary-dim text-white rounded-xl font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
       >
         <span className="material-symbols-outlined">add_circle</span>
-        Find New Work
+        {t(language, 'findNewWork')}
       </Link>
     </aside>
   );

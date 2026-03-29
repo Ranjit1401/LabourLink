@@ -1,7 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
+import { t } from '../utils/i18n';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { language } = useApp();
 
   return (
     <div className="bg-background text-on-background">
@@ -24,7 +27,7 @@ export default function LandingPage() {
                 onClick={() => navigate('/signup')}
                 className="px-8 py-5 bg-gradient-to-r from-primary to-primary-dim text-white rounded-xl font-bold text-lg shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                Join as Worker
+                {t(language, 'joinAsWorker')}
                 <span className="material-symbols-outlined">arrow_forward</span>
               </button>
               <button
@@ -32,7 +35,7 @@ export default function LandingPage() {
                 onClick={() => navigate('/signup')}
                 className="px-8 py-5 bg-secondary-container text-on-secondary-container rounded-xl font-bold text-lg hover:bg-secondary-fixed transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                Hire as Contractor
+                {t(language, 'hireAsContractor')}
                 <span className="material-symbols-outlined">engineering</span>
               </button>
             </div>
@@ -101,7 +104,7 @@ export default function LandingPage() {
                 <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
                 <p className="text-on-surface-variant leading-relaxed mb-6">{step.desc}</p>
                 <div className="flex items-center gap-2 text-primary font-bold text-sm tracking-wide">
-                  LEARN MORE <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  {t(language, 'learnMore')} <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </div>
                 <div className="absolute -top-4 -right-4 w-12 h-12 bg-surface text-on-surface-variant/20 font-black text-4xl flex items-center justify-center rounded-full italic">{step.num}</div>
               </div>
@@ -120,8 +123,8 @@ export default function LandingPage() {
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjmUmGWAfQ7hDArKgj-JOCQHPx7tHneK5EVlX80knYGayZbW4i6OdQmoAzp_VZU9XzMaBNSHIddHFfQmRzNY_xMYhJSMy_MEn1WSgy3g06nGDWVFRn9PWfZ5K5EYmqoC5zqbbKDAmTy2A1ytUXE4yuxq-9e2S945omyPLuT8TVYnbjJ4UY8B6hLMOsGe5Ng_LeVs3a7BW6jjVkFgxHBOgAdJz7rQvXl9NfoZvqyBP8rBTmPSGXF_D3sklMNwLrhHkYw-PjoQiN5tao"
             />
             <div className="relative z-10">
-              <h3 className="text-3xl font-bold mb-4">The New Standard for Industry Safety</h3>
-              <p className="text-on-surface-variant max-w-md">Our verification process ensures that every worker on site is trained, certified, and ready for the task at hand.</p>
+              <h3 className="text-3xl font-bold mb-4">{t(language, 'newStandardSafetyTitle')}</h3>
+              <p className="text-on-surface-variant max-w-md">{t(language, 'newStandardSafetyDesc')}</p>
             </div>
           </div>
           <div className="md:col-span-4 bg-primary text-white rounded-xl p-8 flex flex-col justify-between">
@@ -161,17 +164,17 @@ export default function LandingPage() {
         <div className="bg-surface-container-highest rounded-3xl p-12 md:p-20 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-          <h2 className="text-4xl md:text-6xl font-extrabold mb-8 tracking-tight">Ready to build your <span className="text-primary italic">legacy</span>?</h2>
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-8 tracking-tight">{t(language, 'readyToBuildLegacy')}</h2>
           <div className="flex flex-col sm:flex-row justify-center gap-6 relative z-10">
             <button
               id="get-started-btn"
               onClick={() => navigate('/signup')}
               className="px-10 py-6 bg-primary text-white rounded-2xl font-bold text-xl shadow-xl hover:scale-105 transition-transform active:scale-95"
             >
-              Get Started Today
+              {t(language, 'getStartedToday')}
             </button>
             <button className="px-10 py-6 bg-white border-2 border-primary/10 rounded-2xl font-bold text-xl hover:bg-slate-50 transition-colors active:scale-95">
-              Contact Support
+              {t(language, 'contactSupport')}
             </button>
           </div>
         </div>
@@ -185,35 +188,35 @@ export default function LandingPage() {
             <p className="text-sm text-on-surface-variant leading-relaxed">The architectural foundation for modern skilled labor management and trust.</p>
           </div>
           <div>
-            <h4 className="font-bold mb-6">Platform</h4>
+            <h4 className="font-bold mb-6">{t(language, 'platform')}</h4>
             <ul className="space-y-4 text-sm text-on-surface-variant">
-              <li><button onClick={() => navigate('/jobs')} className="hover:text-primary">Find Jobs</button></li>
-              <li><button onClick={() => navigate('/signup')} className="hover:text-primary">Hire Workers</button></li>
-              <li><span className="hover:text-primary cursor-pointer">How it Works</span></li>
-              <li><span className="hover:text-primary cursor-pointer">Pricing</span></li>
+              <li><button onClick={() => navigate('/jobs')} className="hover:text-primary">{t(language, 'findJobsFooter')}</button></li>
+              <li><button onClick={() => navigate('/signup')} className="hover:text-primary">{t(language, 'hireWorkersFooter')}</button></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'howItWorks')}</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'pricing')}</span></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold mb-6">Company</h4>
+            <h4 className="font-bold mb-6">{t(language, 'companySection')}</h4>
             <ul className="space-y-4 text-sm text-on-surface-variant">
-              <li><span className="hover:text-primary cursor-pointer">About Us</span></li>
-              <li><span className="hover:text-primary cursor-pointer">Careers</span></li>
-              <li><span className="hover:text-primary cursor-pointer">Contact</span></li>
-              <li><span className="hover:text-primary cursor-pointer">Privacy</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'aboutUs')}</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'careers')}</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'contact')}</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'privacy')}</span></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold mb-6">Support</h4>
+            <h4 className="font-bold mb-6">{t(language, 'supportSection')}</h4>
             <ul className="space-y-4 text-sm text-on-surface-variant">
-              <li><span className="hover:text-primary cursor-pointer">Help Center</span></li>
-              <li><span className="hover:text-primary cursor-pointer">Safety</span></li>
-              <li><span className="hover:text-primary cursor-pointer">Community</span></li>
-              <li><span className="hover:text-primary cursor-pointer">Status</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'helpCenter')}</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'safety')}</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'community')}</span></li>
+              <li><span className="hover:text-primary cursor-pointer">{t(language, 'status')}</span></li>
             </ul>
           </div>
         </div>
         <div className="max-w-7xl mx-auto pt-16 mt-16 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-on-surface-variant">© 2024 LabourLink Technologies. All rights reserved.</p>
+          <p className="text-xs text-on-surface-variant">{t(language, 'copyrightFoot')}</p>
           <div className="flex gap-6">
             <span className="material-symbols-outlined text-on-surface-variant text-xl cursor-pointer hover:text-primary">public</span>
             <span className="material-symbols-outlined text-on-surface-variant text-xl cursor-pointer hover:text-primary">share</span>

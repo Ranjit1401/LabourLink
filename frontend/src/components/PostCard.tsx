@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useApp } from '../context/AppContext';
+import { t } from '../utils/i18n';
 import type { Post } from '../types';
 import { api } from '../utils/api';
 
@@ -7,10 +9,11 @@ interface PostCardProps {
 }
 
 const PostCard = ({ post }: PostCardProps) => {
+  const { language } = useApp();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [showComment, setShowComment] = useState(false);
-const [commentText, setCommentText] = useState('');
+  const [commentText, setCommentText] = useState('');
 
   const handleLike = () => {
     setLiked((p) => !p);
@@ -94,7 +97,7 @@ const [commentText, setCommentText] = useState('');
         <div className="px-5 pb-4 flex gap-2">
           <input
             className="flex-1 px-4 py-2 bg-surface-container rounded-xl text-sm border-none focus:ring-2 focus:ring-primary"
-            placeholder="Write a comment..."
+            placeholder={t(language, 'writeComment')}
             value={commentText}
             onChange={e => setCommentText(e.target.value)}
           />
@@ -111,7 +114,7 @@ const [commentText, setCommentText] = useState('');
             }}
             className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold"
           >
-            Send
+            {t(language, 'send')}
           </button>
         </div>
       )}

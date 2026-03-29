@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { t } from '../utils/i18n';
 import { api } from '../utils/api';
 
 const REAL_MARKET_NEWS = [
@@ -9,7 +10,7 @@ const REAL_MARKET_NEWS = [
 ];
 
 export default function JobFeedPage() {
-  const { jobs, showToast, addAppliedJob } = useApp();
+  const { jobs, showToast, addAppliedJob, language } = useApp();
   const [postText, setPostText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
@@ -18,9 +19,9 @@ export default function JobFeedPage() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Profile States (Real Data fetch from localStorage)
-  const [userName, setUserName] = useState('My Profile');
+  const [userName, setUserName] = useState(t(language, 'myProfile'));
   const [userInitial, setUserInitial] = useState('U');
-  const [userRoleStr, setUserRoleStr] = useState('Ready to work');
+  const [userRoleStr, setUserRoleStr] = useState(t(language, 'readyToWork'));
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -32,13 +33,13 @@ export default function JobFeedPage() {
           setUserInitial(userObj.name.charAt(0).toUpperCase());
         }
         if (userObj.role) {
-          setUserRoleStr(userObj.role === 'contractor' ? 'Verified Contractor' : 'Verified Worker');
+          setUserRoleStr(userObj.role === 'contractor' ? t(language, 'verifiedContractor') : t(language, 'verifiedWorker'));
         }
       } catch (e) {
         console.error("Error reading user data", e);
       }
     }
-  }, []);
+  }, [language]);
 
   const [applyModal, setApplyModal] = useState<{isOpen: boolean, jobId: string, jobTitle: string, company: string}>({isOpen: false, jobId: '', jobTitle: '', company: ''});
   const [agreedToTc, setAgreedToTc] = useState(false);
@@ -58,7 +59,7 @@ export default function JobFeedPage() {
   const handleConfirmApply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreedToTc) {
-      showToast('You must agree to the Terms & Conditions.', 'error');
+      showToast(t(language, 'mustAgreeTerms'), 'error');
       return;
     }
     
@@ -71,41 +72,45 @@ export default function JobFeedPage() {
         addAppliedJob({
           id: applyModal.jobId,
           title: applyModal.jobTitle,
-          company: applyModal.company || 'Verified Contractor',
+          company: applyModal.company || t(language, 'verifiedContractor'),
           status: 'Under Review',
           appliedAt: new Date().toLocaleDateString()
         });
       }
 
-      showToast(`Successfully applied to "${applyModal.jobTitle}"! 🎉`, 'success');
+      showToast(t(language, 'successfullyAppliedTo', { title: applyModal.jobTitle }), 'success');
       handleCloseApply();
     } catch (error: any) {
-      showToast(error.message || `Failed to apply. You might have already applied.`, 'error');
+      showToast(error.message || t(language, 'failedToApply'), 'error');
     } finally {
       setIsApplying(false);
     }
   };
 
   const handlePost = async () => {
-    if (!postText.trim()) return;
+    if (!postText.trim() && !selectedFile) return;
+    if (!postText.trim()) {
+      showToast(t(language, 'pleaseAddText'), 'info');
+      return;
+    }
     if (!selectedFile) {
-      showToast('Please select a photo/video (required by backend).', 'info');
+      showToast(t(language, 'selectPhotoRequired'), 'info');
       return;
     }
 
     try {
-      showToast('Uploading post...', 'info');
+      showToast(t(language, 'uploadingPost'), 'info');
       const formData = new FormData();
       formData.append('description', postText);
       formData.append('skills', 'General'); 
       formData.append('file', selectedFile);
 
       await api.createPost(formData);
-      showToast('Post shared successfully!', 'success');
+      showToast(t(language, 'postSharedSuccessfully'), 'success');
       setPostText('');
       setSelectedFile(null);
     } catch (error: any) {
-      showToast('Failed to share post. Try again.', 'error');
+      showToast(t(language, 'failedToShare'), 'error');
     }
   };
 
@@ -119,7 +124,7 @@ export default function JobFeedPage() {
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
-      showToast('Photo captured! Fetching GPS location...', 'info');
+      showToast(t(language, 'photoCapturedFetchGps'), 'info');
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -127,14 +132,14 @@ export default function JobFeedPage() {
             const lat = position.coords.latitude.toFixed(4);
             const lng = position.coords.longitude.toFixed(4);
             setPostText(prev => prev + `\n📍 [GPS Location: ${lat}, ${lng}]`);
-            showToast('GPS Location added to post!', 'success');
+            showToast(t(language, 'gpsLocationAdded'), 'success');
           },
           (error) => {
-            showToast('Could not fetch GPS location. Check permissions.', 'error');
+            showToast(t(language, 'gpsLocationFailed'), 'error');
           }
         );
       } else {
-        showToast('Geolocation is not supported by your browser.', 'error');
+        showToast(t(language, 'geolocationUnsupported'), 'error');
       }
     }
   };
@@ -148,15 +153,15 @@ export default function JobFeedPage() {
             <button onClick={handleCloseApply} className="absolute top-4 right-4 text-on-surface-variant hover:text-error">
               <span className="material-symbols-outlined">close</span>
             </button>
-            <h2 className="text-2xl font-headline font-bold text-on-surface mb-2">Apply for Job</h2>
+<h2 className="text-2xl font-headline font-bold text-on-surface mb-2">{t(language, 'applyForJob')}</h2>
             <p className="text-primary font-bold mb-6">{applyModal.jobTitle}</p>
             
             <form onSubmit={handleConfirmApply} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Your Expected Wage (Optional)</label>
+                <label className="text-sm font-semibold">{t(language, 'expectedWage')}</label>
                 <input 
                   type="text" 
-                  placeholder="e.g., ₹600/day" 
+                  placeholder={t(language, 'expectedWagePlaceholder')} 
                   value={expectedWage}
                   onChange={(e) => setExpectedWage(e.target.value)}
                   className="w-full p-3 bg-surface-container rounded-xl border-none focus:ring-2 focus:ring-primary text-sm"
@@ -164,11 +169,11 @@ export default function JobFeedPage() {
               </div>
 
               <div className="bg-surface-container-highest p-4 rounded-xl text-xs text-on-surface-variant h-32 overflow-y-auto mb-2 border border-outline-variant/20">
-                <strong>Terms & Conditions:</strong><br/>
-                1. I confirm that all the information provided in my profile is true and accurate.<br/>
-                2. I agree to show up on the site on time if selected by the contractor.<br/>
-                3. LabourLink is only a platform to connect; wage disputes must be handled directly with the contractor.<br/>
-                4. Safety gear requirement must be strictly followed on site.
+                <strong>{t(language, 'termsAndConditions')}</strong><br/>
+                1. {t(language, 'tcPoint1')}<br/>
+                2. {t(language, 'tcPoint2')}<br/>
+                3. {t(language, 'tcPoint3')}<br/>
+                4. {t(language, 'tcPoint4')}
               </div>
 
               <label className="flex items-start gap-2 cursor-pointer mt-4">
@@ -178,15 +183,15 @@ export default function JobFeedPage() {
                   onChange={(e) => setAgreedToTc(e.target.checked)}
                   className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary" 
                 />
-                <span className="text-sm text-on-surface font-medium">I have read and agree to the Terms & Conditions.</span>
+                <span className="text-sm text-on-surface font-medium">{t(language, 'termsAgree')}</span>
               </label>
 
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={handleCloseApply} className="flex-1 py-3 bg-surface-container font-bold text-on-surface rounded-xl hover:bg-surface-container-high transition-colors">
-                  Cancel
+                  {t(language, 'cancel')}
                 </button>
                 <button type="submit" disabled={isApplying || !agreedToTc} className={`flex-1 py-3 text-white font-bold rounded-xl transition-all ${isApplying || !agreedToTc ? 'bg-primary/50 cursor-not-allowed' : 'bg-primary hover:bg-primary-dim shadow-lg'}`}>
-                  {isApplying ? 'Applying...' : 'Confirm Application'}
+                  {isApplying ? t(language, 'applying') : t(language, 'confirmApplication')}
                 </button>
               </div>
             </form>
@@ -220,7 +225,7 @@ export default function JobFeedPage() {
                 </div>
                 <input
                   className="flex-1 px-5 py-3 bg-surface-container rounded-full text-on-surface-variant text-sm hover:bg-surface-container-high transition-colors font-medium border-none focus:ring-2 focus:ring-primary"
-                  placeholder="Share a work update..."
+                  placeholder={t(language, 'feedPostPlaceholder')}
                   value={postText}
                   onChange={e => setPostText(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handlePost()}
@@ -235,14 +240,14 @@ export default function JobFeedPage() {
               <div className="flex justify-between mt-4 px-2">
                 <div className="flex gap-2">
                   <button onClick={() => fileInputRef.current?.click()} className={`flex items-center gap-1 font-semibold text-sm p-2 rounded-lg transition-colors ${selectedFile ? 'text-primary bg-primary/10' : 'text-on-surface-variant hover:bg-surface-container'}`}>
-                    <span className="material-symbols-outlined text-primary text-[18px]">image</span> {selectedFile ? 'Added' : 'Photo'}
+                    <span className="material-symbols-outlined text-primary text-[18px]">image</span> {selectedFile ? t(language, 'added') : t(language, 'photo')}
                   </button>
                   <button onClick={() => cameraInputRef.current?.click()} className="flex items-center gap-1 text-on-surface-variant font-semibold text-sm hover:bg-surface-container p-2 rounded-lg transition-colors">
-                    <span className="material-symbols-outlined text-secondary text-[18px]">photo_camera</span> Camera (GPS)
+                    <span className="material-symbols-outlined text-secondary text-[18px]">photo_camera</span> {t(language, 'cameraGPS')}
                   </button>
                 </div>
                 <button onClick={handlePost} className="flex items-center gap-1 text-on-surface-variant font-semibold text-sm hover:bg-surface-container p-2 rounded-lg transition-colors">
-                  <span className="material-symbols-outlined text-tertiary">send</span> Post
+                  <span className="material-symbols-outlined text-tertiary">send</span> {t(language, 'post')}
                 </button>
               </div>
             </div>
@@ -251,11 +256,11 @@ export default function JobFeedPage() {
             {jobs.length === 0 ? (
               <div className="text-center p-10 bg-surface-container-lowest rounded-xl border border-surface-container">
                 <span className="material-symbols-outlined text-4xl text-outline mb-2">work_off</span>
-                <p className="text-on-surface-variant font-bold">No jobs available right now.</p>
+                <p className="text-on-surface-variant font-bold">{t(language, 'noJobsAvailable')}</p>
               </div>
             ) : (
               jobs.filter(j => j.status === 'open' || !j.status).map(job => (
-                <article key={job._id || job.id} className="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container overflow-hidden mb-4">
+                <article key={job.id} className="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container overflow-hidden mb-4">
                   <div className="p-4 sm:p-5">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex gap-3">
@@ -263,8 +268,8 @@ export default function JobFeedPage() {
                           <span className="material-symbols-outlined">{job.icon || 'engineering'}</span>
                         </div>
                         <div>
-                          <h3 className="font-bold text-on-surface leading-tight text-sm line-clamp-1">{job.created_by || job.company || 'Verified Contractor'}</h3>
-                          <p className="text-xs text-on-surface-variant">{job.postedAt || 'Recently'} • <span className="text-secondary font-bold">Verified</span></p>
+                        <h3 className="font-bold text-on-surface leading-tight text-sm line-clamp-1">{job.company || t(language, 'verifiedContractor')}</h3>
+                          <p className="text-xs text-on-surface-variant">{job.postedAt || t(language, 'recently')} • <span className="text-secondary font-bold">{t(language, 'verified')}</span></p>
                         </div>
                       </div>
                     </div>
@@ -283,8 +288,8 @@ export default function JobFeedPage() {
                           <span className="material-symbols-outlined text-sm">payments</span>
                         </div>
                         <div>
-                          <p className="text-[9px] uppercase font-bold text-on-surface-variant tracking-wider">Wage</p>
-                          <p className="font-bold text-on-surface text-sm">{job.wage} <span className="text-[10px] font-normal">/ {job.wageUnit || 'day'}</span></p>
+                          <p className="text-[9px] uppercase font-bold text-on-surface-variant tracking-wider">{t(language, 'wage')}</p>
+                          <p className="font-bold text-on-surface text-sm">{job.wage} <span className="text-[10px] font-normal">/ {job.wageUnit || t(language, 'perDay')}</span></p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -292,17 +297,17 @@ export default function JobFeedPage() {
                           <span className="material-symbols-outlined text-sm">location_on</span>
                         </div>
                         <div>
-                          <p className="text-[9px] uppercase font-bold text-on-surface-variant tracking-wider">Location</p>
-                          <p className="font-bold text-on-surface text-sm line-clamp-1">{job.location || 'Site Location'}</p>
+                          <p className="text-[9px] uppercase font-bold text-on-surface-variant tracking-wider">{t(language, 'locationLabel')}</p>
+                          <p className="font-bold text-on-surface text-sm line-clamp-1">{job.location || t(language, 'siteLocation')}</p>
                         </div>
                       </div>
                     </div>
                     <div className="flex gap-3">
                       <button
-                        onClick={() => handleOpenApply(job._id || job.id || '', job.title, job.company || '')}
+                        onClick={() => handleOpenApply(job.id || '', job.title, job.company || '')}
                         className="flex-1 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dim transition-colors text-sm"
                       >
-                        Apply Now
+                        {t(language, 'applyNow')}
                       </button>
                     </div>
                   </div>
@@ -314,7 +319,7 @@ export default function JobFeedPage() {
           {/* Right Sidebar */}
           <aside className="hidden lg:block lg:col-span-3 space-y-6">
             <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-surface-container">
-              <h3 className="font-bold text-on-surface mb-4">Labour Market News</h3>
+              <h3 className="font-bold text-on-surface mb-4">{t(language, 'labourMarketNews')}</h3>
               <ul className="space-y-4">
                 {REAL_MARKET_NEWS.map(item => (
                   <li key={item.id} className="group cursor-pointer">

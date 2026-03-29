@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { t } from '../utils/i18n';
 import { AVAILABLE_SKILLS } from '../utils/mockData';
 
 export default function ChooseSkillsPage() {
   const navigate = useNavigate();
-  const { setWorkerSkills, showToast } = useApp();
+  const { setWorkerSkills, showToast, language } = useApp();
   const [selected, setSelected] = useState<string[]>([]);
 
   const toggleSkill = (skill: string) => {
@@ -16,11 +17,11 @@ export default function ChooseSkillsPage() {
 
   const handleContinue = () => {
     if (selected.length === 0) {
-      showToast('Please select at least one skill', 'error');
+      showToast(t(language, 'selectSkillError'), 'error');
       return;
     }
     setWorkerSkills(selected);
-    showToast(`${selected.length} skills saved to your profile!`, 'success');
+    showToast(`${selected.length} ${t(language, 'skillsSavedSuccess')}`, 'success');
     navigate('/worker-profile');
   };
 
@@ -42,9 +43,9 @@ export default function ChooseSkillsPage() {
         {/* Hero Section */}
         <section className="mb-12 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-primary-dim p-8 md:p-12 text-on-primary shadow-xl">
           <div className="relative z-10 max-w-xl">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 leading-tight">Choose Your Skills</h1>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 leading-tight">{t(language, 'chooseYourSkills')}</h1>
             <p className="text-on-primary/80 text-lg md:text-xl font-medium leading-relaxed">
-              Select the skills you're proficient in to help contractors find you for the right jobs.
+              {t(language, 'chooseSkillsDesc')}
             </p>
           </div>
           <div className="absolute -right-12 -bottom-12 opacity-20 transform rotate-12 hidden md:block">
@@ -86,7 +87,7 @@ export default function ChooseSkillsPage() {
               onClick={handleContinue}
               className="px-8 py-4 bg-gradient-to-r from-primary to-primary-dim text-white rounded-xl font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center gap-2"
             >
-              Continue
+              {t(language, 'continue')}
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>
           </div>
@@ -95,14 +96,14 @@ export default function ChooseSkillsPage() {
         {/* Featured Verification Section */}
         <section className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-secondary-container/30 rounded-[2.5rem] p-8 md:p-12">
           <div>
-            <span className="inline-block px-4 py-1.5 bg-secondary text-on-secondary rounded-full text-xs font-bold uppercase tracking-widest mb-4">Safety First</span>
-            <h2 className="text-3xl font-extrabold text-on-surface leading-tight mb-4">Verified Professional Excellence</h2>
+            <span className="inline-block px-4 py-1.5 bg-secondary text-on-secondary rounded-full text-xs font-bold uppercase tracking-widest mb-4">{t(language, 'safetyFirst')}</span>
+            <h2 className="text-3xl font-extrabold text-on-surface leading-tight mb-4">{t(language, 'verifiedProfessionalExcellence')}</h2>
             <p className="text-on-surface-variant text-lg mb-6 leading-relaxed">
-              Every service provider on LabourLink undergoes a rigorous background check and skill verification process. Quality and dignity are at the core of every job.
+              {t(language, 'qualityDignity')}
             </p>
             <div className="flex items-center gap-3 text-secondary font-bold">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-              <span>100% Background Checked</span>
+              <span>{t(language, 'backgroundChecked')}</span>
             </div>
           </div>
           <div className="relative">

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useApp } from '../context/AppContext';
+import { t } from '../utils/i18n';
 import type { Job } from '../types';
 import { api } from '../utils/api';
 
@@ -9,6 +11,7 @@ interface JobCardProps {
 }
 
 const JobCard = ({ job, variant = 'feed', onApply }: JobCardProps) => {
+  const { language } = useApp();
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [likeCount, setLikeCount] = useState(job.likes ?? 0);
@@ -43,7 +46,7 @@ const JobCard = ({ job, variant = 'feed', onApply }: JobCardProps) => {
                   : 'bg-surface-container-high text-on-surface-variant'
               }`}
             >
-              {job.type === 'immediate' ? 'Immediate Start' : job.type}
+              {job.type === 'immediate' ? t(language, 'immediateStart') : job.type}
             </span>
           )}
         </div>
@@ -55,14 +58,14 @@ const JobCard = ({ job, variant = 'feed', onApply }: JobCardProps) => {
 
         <div className="mt-6 flex items-center justify-between border-t border-surface-container pt-4">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Wage</span>
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{t(language, 'wage')}</span>
             <span className="text-xl font-extrabold text-primary">
               {job.wage}
               <span className="text-xs font-medium">/{job.wageUnit}</span>
             </span>
           </div>
           <div className="flex flex-col text-right">
-            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Location</span>
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{t(language, 'location')}</span>
             <span className="font-semibold text-on-surface flex items-center gap-1 justify-end">
               <span className="material-symbols-outlined text-sm">near_me</span>
               {job.location}
@@ -128,7 +131,7 @@ const JobCard = ({ job, variant = 'feed', onApply }: JobCardProps) => {
               <span className="material-symbols-outlined">payments</span>
             </div>
             <div>
-              <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Wage</p>
+              <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">{t(language, 'wage')}</p>
               <p className="font-bold text-on-surface">
                 {job.wage}{' '}
                 <span className="text-xs font-normal">/ {job.wageUnit}</span>
@@ -140,7 +143,7 @@ const JobCard = ({ job, variant = 'feed', onApply }: JobCardProps) => {
               <span className="material-symbols-outlined">location_on</span>
             </div>
             <div>
-              <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Location</p>
+              <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">{t(language, 'location')}</p>
               <p className="font-bold text-on-surface">{job.location}</p>
             </div>
           </div>
@@ -152,7 +155,7 @@ const JobCard = ({ job, variant = 'feed', onApply }: JobCardProps) => {
             onClick={() => onApply?.((job as any)._id || job.id, job.title, job.company)}
             className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dim transition-colors"
           >
-            Apply Now
+            {t(language, 'applyNow')}
           </button>
           <button
             onClick={() => setBookmarked((b) => !b)}
@@ -191,12 +194,12 @@ const JobCard = ({ job, variant = 'feed', onApply }: JobCardProps) => {
           </button>
           <button className="flex items-center gap-2 text-sm font-semibold hover:text-primary transition-colors">
             <span className="material-symbols-outlined text-xl">comment</span>
-            {job.comments} Comments
+            {job.comments} {t(language, 'comments')}
           </button>
         </div>
         <button className="flex items-center gap-2 text-sm font-semibold hover:text-primary transition-colors">
           <span className="material-symbols-outlined text-xl">share</span>
-          Share
+          {t(language, 'share')}
         </button>
       </div>
     </article>
