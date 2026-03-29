@@ -88,7 +88,8 @@ const languages = [
           <button
             onClick={() => navigate('/notifications')}
             className="relative text-on-surface-variant hover:text-primary transition-colors"
-                >
+          >
+          </button>
             
             {/* Added: Language Selection */}
             <div className="relative">
