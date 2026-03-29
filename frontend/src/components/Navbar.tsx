@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
-import { useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import { Globe, Bell } from "lucide-react";
+import { LANGUAGES, Language } from "../utils/i18n";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -143,6 +145,94 @@ const languages = [
             )}
           </div>
         </div>
+      </div>
+    </nav>
+  );
+}
+
+
+// src/components/Navbar.tsx
+// Drop-in replacement — wires the language dropdown to global state.
+
+
+  const { language, setLanguage } = useAppContext();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const currentLang = LANGUAGES.find((l) => l.code === language);
+
+  const handleSelect = (code: Language) => {
+    setLanguage(code);
+    setDropdownOpen(false);
+  };
+
+  return (
+    <nav className="navbar">
+      {/* Logo */}
+      <div className="navbar-logo">
+        {/* your existing logo/icon here */}
+        <span className="navbar-brand">LabourLink</span>
+      </div>
+
+      {/* Nav Links */}
+      <div className="navbar-links">
+        <a href="/home">Home</a>
+        <a href="/connections">Connections</a>
+        <a href="/jobs">Jobs</a>
+        <a href="/profile">Profile</a>
+      </div>
+
+      {/* Right side controls */}
+      <div className="navbar-actions">
+
+        {/* ── Language Switcher ── */}
+        <div className="lang-switcher" ref={dropdownRef}>
+          <button
+            className="lang-trigger"
+            onClick={() => setDropdownOpen((prev) => !prev)}
+            aria-haspopup="listbox"
+            aria-expanded={dropdownOpen}
+          >
+            <Globe size={16} />
+            <span>{currentLang?.nativeLabel ?? "EN"}</span>
+            <span className="lang-caret">{dropdownOpen ? "▲" : "▼"}</span>
+          </button>
+
+          {dropdownOpen && (
+            <ul className="lang-dropdown" role="listbox">
+              {LANGUAGES.map((lang) => (
+                <li
+                  key={lang.code}
+                  role="option"
+                  aria-selected={language === lang.code}
+                  className={`lang-option ${language === lang.code ? "lang-option--active" : ""}`}
+                  onClick={() => handleSelect(lang.code)}
+                >
+                  {lang.nativeLabel}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Notification bell */}
+        <button className="icon-btn">
+          <Bell size={20} />
+        </button>
+
+        {/* Sign In */}
+        <button className="btn-primary">Sign In</button>
       </div>
     </nav>
   );

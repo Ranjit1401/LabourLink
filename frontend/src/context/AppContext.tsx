@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { UserRole, ToastMessage, Job, Notification, Endorsement } from '../types';
 import { api } from '../utils/api';
-
+import { Language } from "../utils/i18n";
 export interface AppliedJob {
   id: string;
   title: string;
@@ -160,3 +160,34 @@ export function useApp() {
   if (!ctx) throw new Error('useApp must be inside AppProvider');
   return ctx;
 }
+
+// src/context/AppContext.tsx
+// Add language state to your existing AppContext.
+// Merge this with whatever else you already have in AppContext.tsx
+
+
+interface AppContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  // 👇 keep all your existing fields below this line
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [language, setLanguage] = useState<Language>("en");
+
+  // 👇 keep all your existing state here
+
+  return (
+    <AppContext.Provider value={{ language, setLanguage }}>
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export const useAppContext = () => {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useAppContext must be used inside AppProvider");
+  return ctx;
+};

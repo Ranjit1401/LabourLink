@@ -1,6 +1,19 @@
-import { useState } from 'react';
+import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useAppContext } from "../context/AppContext";
+import { t } from "../utils/i18n";
+
+export default function JobsPage() {
+  const { language } = useAppContext();
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const SKILLS = ["carpentry", "plumbing", "electrical", "hvac", "masonry", "painting"] as const;
+
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    );
+  };
 
 export default function JobsPage() {
   const navigate = useNavigate();
@@ -148,6 +161,63 @@ export default function JobsPage() {
             })}
           </div>
         </div>
+      </main>
+    </div>
+  );
+}
+
+
+// src/pages/JobsPage.tsx
+// Shows how to consume translations on any page.
+// Replace your existing JobsPage content with this pattern.
+
+  return (
+    <div className="jobs-page">
+
+      {/* Sidebar filter */}
+      <aside className="refine-sidebar">
+        <h3>{t(language, "refineSearch")}</h3>
+        <p className="skillset-label">{t(language, "skillset")}</p>
+
+        {SKILLS.map((skill) => (
+          <label key={skill} className="skill-checkbox">
+            <input
+              type="checkbox"
+              checked={selectedSkills.includes(skill)}
+              onChange={() => toggleSkill(skill)}
+            />
+            {t(language, skill)}
+          </label>
+        ))}
+
+        <button
+          className="btn-clear"
+          onClick={() => setSelectedSkills([])}
+        >
+          {t(language, "clearFilters")}
+        </button>
+      </aside>
+
+      {/* Main content */}
+      <main className="jobs-main">
+        <div className="jobs-header">
+          <div>
+            <h1>{t(language, "availableJobs")}</h1>
+            <p className="jobs-count">{t(language, "noRolesFound")}</p>
+          </div>
+          <div className="jobs-search">
+            <input placeholder={t(language, "searchByRole")} />
+            <input placeholder={t(language, "searchByCompany")} />
+          </div>
+        </div>
+
+        {/* Verified banner */}
+        <div className="verified-banner">
+          <span>✅</span>
+          <p>{t(language, "verifiedProfile")}</p>
+        </div>
+
+        {/* Job cards would go here, filtered by selectedSkills */}
       </main>
     </div>
   );
